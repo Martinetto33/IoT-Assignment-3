@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @SpringBootApplication
 @RestController
-public class RiverMonitoringServiceApplication {
+public class RiverMonitoringServiceApplication implements RiverMonitoringServiceApplicationInterface {
 	private int waterLevel = 0;				//indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private String status = "a";			//indicates the status of the system
@@ -19,6 +18,7 @@ public class RiverMonitoringServiceApplication {
       	SpringApplication.run(RiverMonitoringServiceApplication.class, args);
     }
 
+    @Override
     @CrossOrigin(origins = "*")
     @PostMapping("/dashboard")
     public int dashboard(@RequestParam(value = "level")int gateOpening) {
@@ -30,19 +30,22 @@ public class RiverMonitoringServiceApplication {
 		return this.openingGatePercentage;
     }
 
+    @Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
     public int getLevel() {
         return this.waterLevel;
     }
 
-	@CrossOrigin(origins = "*")
+	@Override
+    @CrossOrigin(origins = "*")
     @GetMapping("/getStatus")
     public String getStatus() {
         return this.status;
     }
 
-	@CrossOrigin(origins = "*")
+	@Override
+    @CrossOrigin(origins = "*")
     @GetMapping("/getGatePercentage")
     public int getOpening() {
         return this.openingGatePercentage;
