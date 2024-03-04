@@ -2,16 +2,18 @@ package webServer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
 public class RiverMonitoringServiceApplication implements RiverMonitoringServiceApplicationInterface {
-	private int waterLevel = 0;				//indicates the height of the water
+	private static int waterLevel = 0;		//indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private String status = "a";			//indicates the status of the system
     public static void main(String[] args) {
@@ -34,7 +36,7 @@ public class RiverMonitoringServiceApplication implements RiverMonitoringService
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
     public int getLevel() {
-        return this.waterLevel;
+        return waterLevel;
     }
 
 	@Override
@@ -49,5 +51,13 @@ public class RiverMonitoringServiceApplication implements RiverMonitoringService
     @GetMapping("/getGatePercentage")
     public int getOpening() {
         return this.openingGatePercentage;
+    }
+}
+
+@Controller
+class WebController {
+    @RequestMapping("/")
+    public String index() {
+        return "index.html";
     }
 }
