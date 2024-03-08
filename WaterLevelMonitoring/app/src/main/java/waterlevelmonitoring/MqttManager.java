@@ -33,6 +33,11 @@ public class MqttManager {
             ex.printStackTrace();
         }
 
+        /* // access security registry
+        final SecurityRegistry securityRegistry = Services.securityRegistry();
+        // create and set provider
+        securityRegistry.setAuthenticatorProvider(new MyAuthenticatorProvider()); */
+
         /* Creation of the subscriber */
         Mqtt5BlockingClient client = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
