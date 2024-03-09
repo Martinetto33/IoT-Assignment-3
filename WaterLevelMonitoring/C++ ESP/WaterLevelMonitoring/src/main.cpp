@@ -11,7 +11,7 @@ const char* password = "esiot-2023";
 const char* mqtt_server = "broker.hivemq.com";
 
 /* MQTT topic */
-const char* topic = "water-level";
+const char* topic = "esiot-2024/group-4/water-level";
 
 /* MQTT client management */
 

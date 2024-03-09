@@ -17,6 +17,9 @@ import com.hivemq.embedded.EmbeddedHiveMQ;
 import com.hivemq.embedded.EmbeddedHiveMQBuilder;
 
 public class MqttManager {
+
+    private static final String TOPIC_NAME = "esiot-2024/group-4/water-level";
+
     public String getGreeting() {
         return "Hello World!";
     }
@@ -33,11 +36,6 @@ public class MqttManager {
             ex.printStackTrace();
         }
 
-        /* // access security registry
-        final SecurityRegistry securityRegistry = Services.securityRegistry();
-        // create and set provider
-        securityRegistry.setAuthenticatorProvider(new MyAuthenticatorProvider()); */
-
         /* Creation of the subscriber */
         Mqtt5BlockingClient client = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
@@ -45,7 +43,7 @@ public class MqttManager {
                 .buildBlocking();
         client.connect();
         try (final Mqtt5Publishes publishes = client.publishes(MqttGlobalPublishFilter.ALL)) {
-            client.subscribeWith().topicFilter("water-level").qos(MqttQos.AT_LEAST_ONCE).send();
+            client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
             System.out.println("Subscription occurred");
             /* There are two versions of publishes.receive(), the one that takes no arguments
              * is blocking.
