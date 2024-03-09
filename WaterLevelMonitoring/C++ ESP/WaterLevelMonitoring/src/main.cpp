@@ -18,7 +18,6 @@ const char* topic = "esiot-2024/group-4/water-level";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-
 unsigned long lastMsgTime = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
