@@ -17,5 +17,7 @@ const char* password = "INSERT_YOUR_PASSWORD";
 /* MQTT server address, DO NOT change this value. */
 const char* mqtt_server = "broker.hivemq.com";
 
-/* MQTT topic, DO NOT change this value. */
-const char* topic = "esiot-2024/group-4/water-level";
+/* MQTT water_level_publication_topic, DO NOT change this value. */
+const char* water_level_publication_topic = "esiot-2024/group-4/water-level";
+/* MQTT measurement_frequency_subscription_topic, DO NOT change this value. */
+const char* measurement_frequency_subscription_topic = "esiot-2024/group-4/measurement-frequency";

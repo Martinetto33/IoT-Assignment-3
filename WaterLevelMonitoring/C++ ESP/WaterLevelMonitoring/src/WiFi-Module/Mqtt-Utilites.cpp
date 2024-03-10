@@ -1,9 +1,9 @@
 #include "Mqtt-Utilities.h"
-//#include "config.h"
 
-extern PubSubClient client;
-extern const char* mqtt_server;
-extern const char* topic;
+extern PubSubClient client; // defined in WiFi-Utilities.cpp
+extern const char* mqtt_server; // defined in config.h
+extern const char* water_level_publication_topic; // defined in config.h
+extern const char* measurement_frequency_subscription_topic; // defined in config.h
 
 void callback(char* topicIn, byte* payload, unsigned int length) {
     Serial.println(String("Message arrived on [") + topicIn + "] len: " + length);
@@ -12,10 +12,11 @@ void callback(char* topicIn, byte* payload, unsigned int length) {
 void setup_mqtt() {
     client.setServer(mqtt_server, 1883);
     client.setCallback(callback);
+    client.subscribe(measurement_frequency_subscription_topic);
 }
 
 void mqtt_publish(const char* msg) {
-    client.publish(topic, msg);
+    client.publish(water_level_publication_topic, msg);
 }
 
 bool mqtt_is_client_connected() {
@@ -38,7 +39,7 @@ void mqtt_reconnect() {
       // Once connected, publish an announcement...
       // client.publish("outTopic", "hello world");
       // ... and resubscribe
-      client.subscribe(topic);
+      client.subscribe(measurement_frequency_subscription_topic);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());

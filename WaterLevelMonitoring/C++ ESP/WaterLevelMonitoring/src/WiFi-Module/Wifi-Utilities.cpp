@@ -1,13 +1,11 @@
 #include <Arduino.h>
 #include <PubSubClient.h>
-//#include "config.h"
 #include "WiFi-Utilities.h"
-//#include "Mqtt-Utilities.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-extern const char* ssid;
-extern const char* password;
+extern const char* ssid; // defined in config.h
+extern const char* password; // defined in config.h
 
 void setup_wifi() {
 
