@@ -2,6 +2,7 @@
 #include "config.h"
 #include "WiFi-Module/WiFi-Utilities.h"
 #include "WiFI-Module/Mqtt-Utilities.h"
+#include "Queue/Queue.hpp"
 #define MSG_BUFFER_SIZE  50
 
 unsigned long lastMsgTime = 0;
