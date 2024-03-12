@@ -9,6 +9,8 @@ unsigned long lastMsgTime = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
+int measurement_frequency = 20; // frequency expressed in number of measurements per second
+
 void setup() {
   Serial.begin(115200);
   setup_wifi();
