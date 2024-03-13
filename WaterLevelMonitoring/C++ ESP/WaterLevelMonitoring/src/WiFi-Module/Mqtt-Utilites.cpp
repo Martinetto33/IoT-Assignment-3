@@ -4,9 +4,20 @@ extern PubSubClient client; // defined in WiFi-Utilities.cpp
 extern const char* mqtt_server; // defined in config.h
 extern const char* water_level_publication_topic; // defined in config.h
 extern const char* measurement_frequency_subscription_topic; // defined in config.h
+extern int measurement_frequency; // defined in main.cpp
 
+
+/* The callback function is what is called when the client receives an MQTT packet
+having the correct topic is received by the client which subscribed to it. */
 void callback(char* topicIn, byte* payload, unsigned int length) {
     Serial.println(String("Message arrived on [") + topicIn + "] len: " + length);
+    /* If everything works right, the payload should contain an int representing 
+    the wanted measurement frequency. */
+    byte buffer[length + 1];
+    buffer[length] = '\0';
+    int received_element = atoi((char*)buffer);
+    Serial.println(String("Received ") + received_element);
+    measurement_frequency = received_element;
 }
 
 void setup_mqtt() {

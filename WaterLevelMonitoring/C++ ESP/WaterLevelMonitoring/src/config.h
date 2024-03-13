@@ -10,7 +10,9 @@ const int RED_LED_PIN = 5;
 const int SONAR_PIN_ECHO = 9; // the input pin of the sonar
 const int SONAR_PIN_TRIG = 10; // the output pin of the sonar
 
-/* WiFi network info, replace with actual values. */
+/* WiFi network info, replace with actual values.
+REMEMBER NOT TO COMMIT THEM TO ONLINE REPOSITORY!!!!
+ */
 const char* ssid = "INSERT_YOUR_NETWORK";
 const char* password = "INSERT_YOUR_PASSWORD";
 
