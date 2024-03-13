@@ -1,7 +1,7 @@
 #include "SonarMeasurementTask.hpp"
 
-extern const int SONAR_PIN_ECHO; // defined in config.h
-extern const int SONAR_PIN_TRIG; // defined in config.h
+extern int SONAR_PIN_ECHO; // defined in config.h
+extern int SONAR_PIN_TRIG; // defined in config.h
 
 // TODO: implement all inherited methods from AbstractTask;
 // remember to initialise all fields of this Task.

@@ -6,7 +6,8 @@
 #include "FreeRtosTasks/ConnectionMonitoringTask.hpp"
 #include "FreeRtosTasks/DataSenderTask.hpp"
 #include "FreeRtosTasks/SonarMeasurementTask.hpp"
-#define MSG_BUFFER_SIZE  50
+#include "Sensors/Led.hpp"
+#define MSG_BUFFER_SIZE 50
 
 /** The water level is intended as the distance of the water surface from the sonar;
  * if it's close to 0.0, it means that the water has risen to the same level as the sensor,
@@ -28,12 +29,19 @@ NetworkStatusFSM fsm;
 */
 void connectMonitTaskCode(void* parameter) {
   ConnectionMonitoringTask* task = new ConnectionMonitoringTask();
+  Led* greenLed = new Led(GREEN_LED_PIN);
+  Led* redLed = new Led(RED_LED_PIN);
+
   for(;;) { 
     if (!task->isConnectionOk()) {
       fsm.setState(NETWORK_ERROR);
+      greenLed->turnOff();
+      redLed->turnOn();
       task->reconnect();
     } else {
       fsm.setState(NETWORK_OK);
+      greenLed->turnOn();
+      redLed->turnOff();
     }
   }
 }
@@ -63,6 +71,7 @@ void sonarMeasTaskCode(void* parameters) {
     task->measureWaterLevel();
     if (fsm.getState() == NETWORK_OK && task->isMeasurementAvailable()) {
       water_level = task->getLastMeasurement();
+      Serial.println(String("Water level: ") + water_level);
     }
     delay(1000 / measurement_frequency); // wait for the measurement period to elapse
   }
@@ -72,7 +81,13 @@ void setup() {
   Serial.begin(115200);
   setup_wifi();
   setup_mqtt();
-  randomSeed(micros());
+
+  xTaskCreatePinnedToCore(connectMonitTaskCode, "ConnectionMonitoringTask", 10000, NULL, 1, &connectionMonitoringTask, 0);                         
+  delay(500);
+  xTaskCreatePinnedToCore(dataSenderTaskCode, "DataSenderTask", 10000, NULL, 1, &dataSenderTask, 1);                     
+  delay(500);
+  xTaskCreatePinnedToCore(sonarMeasTaskCode, "SonarMeasurementTask", 10000, NULL, 1, &sonarMeasurementTask, 1);                         
+  delay(500);
 }
 
 void loop() {}
