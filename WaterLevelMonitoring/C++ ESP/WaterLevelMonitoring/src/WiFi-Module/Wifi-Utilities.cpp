@@ -27,3 +27,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+bool is_wifi_connected() {
+  return WiFi.status() == WL_CONNECTED;
+}
+

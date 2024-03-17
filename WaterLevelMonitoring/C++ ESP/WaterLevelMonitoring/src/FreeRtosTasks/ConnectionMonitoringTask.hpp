@@ -1,5 +1,7 @@
 #pragma once
 #include "AbstractTask.hpp"
+#include "WiFi-Module/Mqtt-Utilities.h"
+#include "WiFi-Module/WiFi-Utilities.h"
 
 class ConnectionMonitoringTask : AbstractTask {
     public:

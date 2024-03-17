@@ -1,11 +1,13 @@
 #include "Mqtt-Utilities.h"
+#include <Arduino.h>
+#include <FreeRTOS.h>
 
 extern PubSubClient client; // defined in WiFi-Utilities.cpp
 extern const char* mqtt_server; // defined in config.h
 extern const char* water_level_publication_topic; // defined in config.h
 extern const char* measurement_frequency_subscription_topic; // defined in config.h
 extern int measurement_frequency; // defined in main.cpp
-
+extern SemaphoreHandle_t mFrequencySemaphore;
 
 /* The callback function is what is called when the client receives an MQTT packet
 having the correct topic is received by the client which subscribed to it. */
@@ -17,7 +19,10 @@ void callback(char* topicIn, byte* payload, unsigned int length) {
     buffer[length] = '\0';
     int received_element = atoi((char*)buffer);
     Serial.println(String("Received ") + received_element);
+    /* Acquire the mutex before changing the value of the global variable. */
+    xSemaphoreTake(mFrequencySemaphore, portMAX_DELAY);
     measurement_frequency = received_element;
+    xSemaphoreGive(mFrequencySemaphore);
 }
 
 void setup_mqtt() {
