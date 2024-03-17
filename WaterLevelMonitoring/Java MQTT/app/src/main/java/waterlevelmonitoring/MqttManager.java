@@ -6,7 +6,6 @@ package waterlevelmonitoring;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
@@ -42,26 +41,31 @@ public class MqttManager {
                 .serverHost("broker.hivemq.com")
                 .buildBlocking();
         client.connect();
-        try (final Mqtt5Publishes publishes = client.publishes(MqttGlobalPublishFilter.ALL)) {
-            client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
-            System.out.println("Subscription occurred");
-            /* There are two versions of publishes.receive(), the one that takes no arguments
-             * is blocking.
-             */
-            System.out.println("\nReceived message: " + new String(publishes.receive().getPayloadAsBytes(), StandardCharsets.US_ASCII));
-            System.out.println("\n\n Receiving messages...");
-            publishes.receive(1, TimeUnit.SECONDS).ifPresent(System.out::println);
-            publishes.receive(100, TimeUnit.MILLISECONDS).ifPresent(System.out::println);
-            System.out.println("\n\nSubscription and reception occurred\n\n");
-        } catch (Exception e) {
-            System.out.println("\n\nException occurred while subscribing!\n\n");
-            e.printStackTrace();
-        } finally {
-            /* The finally clause is always executed */
-            client.disconnect();
-            System.out.println("Successfully disconnected");
-        }
 
+        /* Subscription of the client that runs on the backend. */
+        client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
+        System.out.println("Subscription occurred");
+
+        /* This version of the program only executes for 60 seconds. A real server should be always up,
+         * so the condition in the while should be replaced by "true".
+         */
+        final long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < 60_000L) {
+            try (final Mqtt5Publishes publishes = client.publishes(MqttGlobalPublishFilter.ALL)) {
+                /* There are two versions of publishes.receive(), the one that takes no arguments
+                 * is blocking.
+                 */
+                System.out.println("\nReceived message: " + new String(publishes.receive().getPayloadAsBytes(), StandardCharsets.US_ASCII));
+                System.out.println("\n\n Receiving messages...");
+                /* publishes.receive(1, TimeUnit.SECONDS).ifPresent(System.out::println);
+                publishes.receive(100, TimeUnit.MILLISECONDS).ifPresent(System.out::println);
+                System.out.println("\n\nSubscription and reception occurred\n\n"); */
+            } catch (Exception e) {
+                System.out.println("\n\nException occurred while subscribing!\n\n");
+                e.printStackTrace();
+            }
+        }
+        client.disconnect();
         hiveMQ.stop();
         try {
             /* I must remember to call close, otherwise the program never ends. */
