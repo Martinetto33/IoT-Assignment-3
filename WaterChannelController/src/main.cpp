@@ -7,14 +7,14 @@
   - Rettori Lucrezia
 */
 #include <Arduino.h>
+#include "RiverControllerTask.hpp"
 
 
 void setup() {
   Serial.begin(9600);
-  
+  task = new RiverControllerTask(100);
 }
 
 void loop() {
-  
-  
+  task->tick();
 }

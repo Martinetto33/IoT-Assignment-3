@@ -17,27 +17,32 @@ void RiverControllerTask::automaticRoutine(int period)
     switch(fsm.getMicroState()) {
         case NORMAL:
         {
-
+            //frequenza usata per monitorare l'acqua è F1
+            //la valvola deve essere aperta al 25%
         }
         break;
         case ALARM_TOO_LOW:
         {
-
+            //frequenza sempre F1 ??
+            //la valvola deve essere aperta allo 0% (chiusa)
         }
         break;
         case PRE_ALARM_TOO_HIGH:
         {
-
+            //frequenza usata per monitorare l'acqua è F2 (F2 > F1)
+            //l'apertura della valvola rimane com'era
         }
         break;
         case ALARM_TOO_HIGH:
         {
-
+            //frequenza usata per monitorare l'acqua è sempre F2
+            //la valvola deve essere aperta al 50%
         }
         break;
         case ALARM_TOO_HIGH_CRITIC:
         {
-
+            //frequenza usata per monitorare l'acqua è sempre F2
+            //la valvola deve essere aperta al 100%
         }
         break;
     }
@@ -45,5 +50,5 @@ void RiverControllerTask::automaticRoutine(int period)
 
 void RiverControllerTask::manualRoutine(int period)
 {
-    
+    //gestire l'apertura della valvola in base al potenziometro
 }
