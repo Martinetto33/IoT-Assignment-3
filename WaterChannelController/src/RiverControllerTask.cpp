@@ -3,6 +3,10 @@
 #include "RiverControllerFSM.hpp"
 #include "configConstants.hpp"
 
+RiverControllerTask::RiverControllerTask()
+{
+}
+
 void RiverControllerTask::tick(int period)
 {
     if (this->fsm.getMacroState() == AUTO) {

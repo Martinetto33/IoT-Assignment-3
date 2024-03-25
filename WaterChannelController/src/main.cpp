@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include "RiverControllerTask.hpp"
 
+Task* task;
 
 void setup() {
   Serial.begin(9600);
@@ -16,5 +17,5 @@ void setup() {
 }
 
 void loop() {
-  task->tick();
+  task->tick(0);
 }

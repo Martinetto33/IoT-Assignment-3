@@ -11,4 +11,4 @@ class RiverControllerTask : public Task {
     public:
         RiverControllerTask();
         void tick(int period) override;
-}
+};
