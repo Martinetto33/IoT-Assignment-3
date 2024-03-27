@@ -13,9 +13,9 @@ Task* task;
 
 void setup() {
   Serial.begin(9600);
-  task = new RiverControllerTask(100);
+  task = new RiverControllerTask();
 }
 
 void loop() {
-  task->tick(0);
+  task->tick(100);
 }

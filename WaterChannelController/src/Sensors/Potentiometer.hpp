@@ -8,4 +8,5 @@ class Potentiometer
     public:
         Potentiometer(uint8_t potentiometerPin);
         int update();
+        int mappedValue();
 };

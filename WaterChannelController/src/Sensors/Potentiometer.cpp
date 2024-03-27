@@ -11,3 +11,8 @@ int Potentiometer::update()
 {
     return analogRead(this->potentiometerPin);
 }
+
+int Potentiometer::mappedValue()
+{
+    return map(this->update(), 0, 1023, 0, 180);
+}

@@ -36,10 +36,12 @@ class SensorsController
 
         /* Potentiometer management*/
         int potentiometerValue();
+        int mappedPotentiometer();
 
         /* Servo motor management */
         int controllerOpenGate();
         int controllerCloseGate();
+        int controllerSetGate(int angle);
 
         /* Sonar management */
         float controllerMeasureDistance();

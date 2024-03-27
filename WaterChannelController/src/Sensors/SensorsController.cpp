@@ -26,11 +26,16 @@ int SensorsController::potentiometerValue()
     return this->potentiometer.update();
 }
 
+int SensorsController::mappedPotentiometer()
+{
+    return this->potentiometer.mappedValue();
+}
+
 /* Servo motor management */
 int SensorsController::controllerOpenGate()
 {
     this->servo.on();
-    this->servo.setPosition(-30);
+    this->servo.setPosition(180);
     this->servo.off();
     return this->servo.getAngle();
 }
@@ -38,7 +43,15 @@ int SensorsController::controllerOpenGate()
 int SensorsController::controllerCloseGate()
 {
     this->servo.on();
-    this->servo.setPosition(+30);
+    this->servo.setPosition(0);
+    this->servo.off();
+    return this->servo.getAngle();
+}
+
+int SensorsController::controllerSetGate(int angle)
+{
+    this->servo.on();
+    this->servo.setPosition(angle)
     this->servo.off();
     return this->servo.getAngle();
 }
