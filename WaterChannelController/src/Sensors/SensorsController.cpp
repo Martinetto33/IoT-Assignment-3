@@ -51,7 +51,7 @@ int SensorsController::controllerCloseGate()
 int SensorsController::controllerSetGate(int angle)
 {
     this->servo.on();
-    this->servo.setPosition(angle)
+    this->servo.setPosition(angle);
     this->servo.off();
     return this->servo.getAngle();
 }

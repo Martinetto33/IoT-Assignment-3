@@ -2,7 +2,7 @@
 
 #include "RiverControllerFSM.hpp"
 #include "Task.hpp"
-#include "SensorsController.hpp"
+#include "Sensors/SensorsController.hpp"
 
 class RiverControllerTask : public Task {
     private:
