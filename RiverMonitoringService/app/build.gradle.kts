@@ -34,6 +34,7 @@ dependencies {
     implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
     implementation("com.hivemq:hivemq-community-edition-embedded:2024.3")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("io.github.java-native:jssc:2.9.6")
 }
 
 application {

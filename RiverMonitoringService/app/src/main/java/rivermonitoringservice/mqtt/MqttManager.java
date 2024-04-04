@@ -5,7 +5,6 @@ package rivermonitoringservice.mqtt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
@@ -15,15 +14,18 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient.Mqtt5Publishes;
 import com.hivemq.embedded.EmbeddedHiveMQ;
 import com.hivemq.embedded.EmbeddedHiveMQBuilder;
 
+import rivermonitoringservice.Constants;
+
 public class MqttManager {
 
     private static final String TOPIC_NAME = "esiot-2024/group-4/water-level";
+    private double waterLevel = Constants.waterLevel1; // initialising to safe water level value
 
     public String getGreeting() {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
+    public void startMqttServer() {
         /* Creation of the broker */
         final EmbeddedHiveMQBuilder embeddedHiveMQBuilder = EmbeddedHiveMQBuilder.builder();
         final EmbeddedHiveMQ hiveMQ = embeddedHiveMQBuilder.build();
@@ -46,16 +48,15 @@ public class MqttManager {
         client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
         System.out.println("Subscription occurred");
 
-        /* This version of the program only executes for 60 seconds. A real server should be always up,
-         * so the condition in the while should be replaced by "true".
-         */
-        final long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < 60_000L) {
+        while (true) {
             try (final Mqtt5Publishes publishes = client.publishes(MqttGlobalPublishFilter.ALL)) {
                 /* There are two versions of publishes.receive(), the one that takes no arguments
                  * is blocking.
                  */
-                System.out.println("\nReceived message: " + new String(publishes.receive().getPayloadAsBytes(), StandardCharsets.US_ASCII));
+                String messageString = new String(publishes.receive().getPayloadAsBytes(), StandardCharsets.US_ASCII);
+                System.out.println("\nReceived message: " + messageString);
+                this.waterLevel = Double.parseDouble(messageString.replaceAll("(\\r|\\n)", ""));
+                System.out.println("Successfully parsed the following double: " + this.waterLevel);
                 System.out.println("\n\n Receiving messages...");
                 /* publishes.receive(1, TimeUnit.SECONDS).ifPresent(System.out::println);
                 publishes.receive(100, TimeUnit.MILLISECONDS).ifPresent(System.out::println);
@@ -65,15 +66,20 @@ public class MqttManager {
                 e.printStackTrace();
             }
         }
-        client.disconnect();
+        /* UNREACHABLE CODE; ideally, the server should always be up. */
+        /* client.disconnect();
         hiveMQ.stop();
         try {
-            /* I must remember to call close, otherwise the program never ends. */
+            // I must remember to call close, otherwise the program never ends.
             hiveMQ.close();
         } catch (ExecutionException | InterruptedException e) {
             System.out.println("Error while trying to close broker");
             e.printStackTrace();
         }
-        System.out.println("MQTT broker stopped correctly.");
+        System.out.println("MQTT broker stopped correctly."); */
+    }
+
+    public double getWaterLevel() {
+        return this.waterLevel;
     }
 }
