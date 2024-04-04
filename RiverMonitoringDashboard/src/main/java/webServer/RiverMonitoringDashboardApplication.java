@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class RiverMonitoringServiceApplication implements RiverMonitoringServiceApplicationInterface {
+public class RiverMonitoringDashboardApplication implements RiverMonitoringDashboardApplicationInterface {
 	private static int waterLevel = 0;		//indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private String status = "a";			//indicates the status of the system
     public static void main(String[] args) {
-      	SpringApplication.run(RiverMonitoringServiceApplication.class, args);
+      	SpringApplication.run(RiverMonitoringDashboardApplication.class, args);
     }
 
     @Override

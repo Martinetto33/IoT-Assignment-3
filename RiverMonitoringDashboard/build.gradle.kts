@@ -23,7 +23,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass.set("webServer.RiverMonitoringServiceApplication")
+    mainClass.set("webServer.RiverMonitoringDashboardApplication")
 }
 
 tasks.withType<Test> {

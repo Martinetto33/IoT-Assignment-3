@@ -5,7 +5,7 @@ package webServer;
  *  Cross origin it used for accept any request from anyone
  *  Post/get mapping is used to create a post/get request on the specified url
  */
-public interface RiverMonitoringServiceApplicationInterface {
+public interface RiverMonitoringDashboardApplicationInterface {
     //POST to send data from web client to the server
     int dashboard(int gateOpening);
     //GET to obtain water level from server
