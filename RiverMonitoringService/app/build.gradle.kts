@@ -9,6 +9,15 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    id("org.springframework.boot") version "3.2.3"
+	id("io.spring.dependency-management") version "1.1.4"
+}
+
+group = "com.example"
+version = "0.0.1-SNAPSHOT"
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -22,6 +31,9 @@ dependencies {
 
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
+    implementation("com.hivemq:hivemq-community-edition-embedded:2024.3")
+    implementation("org.springframework.boot:spring-boot-starter-web")
 }
 
 application {

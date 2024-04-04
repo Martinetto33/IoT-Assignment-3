@@ -6,14 +6,14 @@ public class NormalState implements State {
 
     @Override
     public void onEntry() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onEntry'");
+        //serial to arduino
     }
 
     @Override
     public void handle() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handle'");
+         
+        //get mqtt
+        //set dashboard
     }
 
     @Override

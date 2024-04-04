@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>River Monitoring Dashboard</title>
+    <style>
+        .row {
+            display: flex;
+            align-items: center;
+        }
+        .row > * {
+            margin-right: 10px;
+        }
+        #myChart {
+            width: 100%;
+            height: 400px; /* Set a fixed height */
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>River Monitoring Dashboard</h1>
+    <p>Status: <span id="status">N/D</span></p>
+    <p>Water level: <span id="waterLevel">N/D</span></p>
+    <div class="row">
+        <p>Opening gate percentage:</p>
+        <input type="range" min="1" max="100" value="50" id="slider" class="send">
+        <p>Slider value: <span id="sliderValue">50</span></p>
+    </div>
+    <div style="height: 400px;" id="chartContainer"> <!-- Set a fixed height for the chart's container -->
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        let slider = document.getElementById('slider');
+        let sliderValue = document.getElementById('sliderValue');
+        let waterLevel = document.getElementById('waterLevel');
+        let status = document.getElementById('status');
+
+        let ctx = document.getElementById('myChart').getContext('2d');
+        let myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Water Level',
+                    data: [],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        slider.addEventListener("input", updateGateOpening);
+
+        function updateGateOpening() {
+            var valore = slider.value;
+            sliderValue.innerHTML = valore; // Update the displayed slider value
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    slider.innerHTML = xhr.responseText;
+                }
+            };
+            xhr.open("POST", "http://localhost:8080/dashboard?level=" + valore, true);
+            xhr.send();
+        }
+
+        function poll() {
+            var xhr1 = new XMLHttpRequest();
+            xhr1.onreadystatechange = function() {
+                if (xhr1.readyState == XMLHttpRequest.DONE) {
+                    waterLevel.innerHTML = xhr1.responseText;
+
+                    // Update the chart data
+                    let now = new Date();
+                    myChart.data.labels.push(now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds());
+                    myChart.data.datasets[0].data.push(parseFloat(xhr1.responseText)); // Parse the response text as a float
+
+                    // Only display the last 50 data points
+                    if (myChart.data.labels.length > 50) {
+                        myChart.data.labels = myChart.data.labels.slice(-50);
+                        myChart.data.datasets[0].data = myChart.data.datasets[0].data.slice(-50);
+                    }
+
+                    console.log('Updating chart with data: ', xhr1.responseText, " ", myChart.data.datasets[0].data);
+                    myChart.update();
+                }
+            };
+            xhr1.open("GET", "http://localhost:8080/getLevel", true);
+            xhr1.send();
+
+            var xhr2 = new XMLHttpRequest();
+            xhr2.onreadystatechange = function() {
+                if (xhr2.readyState == XMLHttpRequest.DONE) {
+                    status.innerHTML = xhr2.responseText;
+                }
+            };
+            xhr2.open("GET", "http://localhost:8080/getStatus", true);
+            xhr2.send();
+
+            var xhr3 = new XMLHttpRequest();
+            xhr3.onreadystatechange = function() {
+                if (xhr3.readyState == XMLHttpRequest.DONE) {
+                    slider.value = xhr3.responseText; //Update the slider value
+                    sliderValue.innerHTML = xhr3.responseText; // Update the displayed slider value
+                }
+            };
+            xhr3.open("GET", "http://localhost:8080/getGatePercentage", true);
+            xhr3.send();
+
+            setTimeout(poll, 100);
+        }
+    poll();
+    </script>
+</body>
+</html>

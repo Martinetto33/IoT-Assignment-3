@@ -3,12 +3,26 @@
  */
 package rivermonitoringservice;
 
+import java.io.IOException;
+
+import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
+
 public class RiverMonitoringService {
     public String getGreeting() {
-        return "Hello World!";
+        return "Hello World!2";
     }
 
     public static void main(String[] args) {
+        try {
+            setup(args); 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println(new RiverMonitoringService().getGreeting());
+    }
+
+    private static void setup(String[] args) throws IOException {
+        RiverMonitoringDashboardApplication dashboard = new RiverMonitoringDashboardApplication();
+        dashboard.startWebServer(args);
     }
 }
