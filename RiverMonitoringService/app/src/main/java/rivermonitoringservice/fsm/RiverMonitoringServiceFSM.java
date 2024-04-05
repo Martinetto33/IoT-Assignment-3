@@ -1,5 +1,6 @@
 package rivermonitoringservice.fsm;
 
+import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.state.api.State;
 
 public class RiverMonitoringServiceFSM {
@@ -20,7 +21,7 @@ public class RiverMonitoringServiceFSM {
         this.currentState.onEntry();
     }
 
-    public void handle() {
-        this.currentState.handle();
+    public void handle(RiverMonitoringServiceData data) {
+        this.currentState.handle(data);
     }
 }

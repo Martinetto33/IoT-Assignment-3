@@ -1,8 +1,12 @@
 package rivermonitoringservice.state.code;
 
-import rivermonitoringservice.state.api.State;
+import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
-public class PreAlarmTooHighState implements State {
+public class PreAlarmTooHighState extends AbstractState {
+
+    public PreAlarmTooHighState(RiverMonitoringServiceFSM fsm) {
+        super(fsm);
+    }
 
     @Override
     public void onEntry() {
@@ -11,15 +15,21 @@ public class PreAlarmTooHighState implements State {
     }
 
     @Override
-    public void handle() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handle'");
-    }
-
-    @Override
     public void onExit() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'onExit'");
+    }
+
+    @Override
+    public String getStateAsString() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getStateAsString'");
+    }
+
+    @Override
+    public void evaluate(double waterLevel) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'evaluate'");
     }
     
 }

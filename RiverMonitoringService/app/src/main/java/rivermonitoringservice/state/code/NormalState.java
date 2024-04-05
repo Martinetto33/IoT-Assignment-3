@@ -1,8 +1,12 @@
 package rivermonitoringservice.state.code;
 
-import rivermonitoringservice.state.api.State;
+import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
-public class NormalState implements State {
+public class NormalState extends AbstractState {
+
+    public NormalState(RiverMonitoringServiceFSM fsm) {
+        super(fsm);
+    }
 
     @Override
     public void onEntry() {
@@ -10,16 +14,21 @@ public class NormalState implements State {
     }
 
     @Override
-    public void handle() {
-         
-        //get mqtt
-        //set dashboard
-    }
-
-    @Override
     public void onExit() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'onExit'");
+    }
+
+    @Override
+    public String getStateAsString() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getStateAsString'");
+    }
+
+    @Override
+    public void evaluate(double waterLevel) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'evaluate'");
     }
     
 }

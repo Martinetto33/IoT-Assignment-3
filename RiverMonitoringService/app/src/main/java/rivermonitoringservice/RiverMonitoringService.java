@@ -22,6 +22,16 @@ public class RiverMonitoringService {
         
     }
 
+    // TODO: serial communication
+    public static void updateChannelController() {}
+
+    public static void updateDashboard(final double waterLevel, final int valveOpeningPercentage, final String currentState) {
+        // TODO: consider avoiding casting to int by allowing the dashboard to work with double data types
+        RiverMonitoringService.dashboard.setWaterLevel((int) waterLevel);
+        RiverMonitoringService.dashboard.setOpeningGatePercentage(valveOpeningPercentage);
+        RiverMonitoringService.dashboard.setStatus(currentState);
+    }
+
     private static void setup(String[] args) {
         RiverMonitoringService.dashboard.startWebServer(args);
         RiverMonitoringService.mqttServer.startMqttServer();
