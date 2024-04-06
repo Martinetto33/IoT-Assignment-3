@@ -5,12 +5,10 @@ package rivermonitoringservice.mqtt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-
 import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient;
+import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
-import com.hivemq.client.mqtt.mqtt5.Mqtt5BlockingClient.Mqtt5Publishes;
 import com.hivemq.embedded.EmbeddedHiveMQ;
 import com.hivemq.embedded.EmbeddedHiveMQBuilder;
 
@@ -20,6 +18,7 @@ public class MqttManager {
 
     private static final String TOPIC_NAME = "esiot-2024/group-4/water-level";
     private double waterLevel = Constants.waterLevel1; // initialising to safe water level value
+    private Mqtt5AsyncClient client;
 
     public String getGreeting() {
         return "Hello World!";
@@ -37,35 +36,46 @@ public class MqttManager {
             ex.printStackTrace();
         }
 
-        /* Creation of the subscriber */
-        Mqtt5BlockingClient client = Mqtt5Client.builder()
+        /* Creation of the subscriber. Differently from the test version in the WaterLevelMonitoring folder,
+         * this client was built in an asynchronous way. If I understood correctly, the callback function provided
+         * as a Consumer<Mqtt5Publish> is automatically called each time an asynchronous communication event
+         * occurs, so there's no need for infinite loops.
+         * 
+         * I used the following guide to implement this code:
+         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-for-java-and-its-async-api-flavor/
+         * 
+         * For comparison, it might be useful to check the blocking alternative:
+         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-for-java-and-its-blocking-api-flavor/
+         * 
+         * Important note: it is good practice to add the callback function before connecting to the server, so
+         * as not to lose information during the connection process.
+         */
+        this.client = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost("broker.hivemq.com")
-                .buildBlocking();
+                .buildAsync(); // the asynchronous version of the client
+        
+        /*
+         * The Mqtt5AsyncClient.publishes() method takes 2 parameters:
+         * 1) the topic filter, allowing the system to discard irrelevant MQTT packets;
+         * 2) the callback function to process the received information with; it's a Consumer<Mqtt5Publish>.
+         * 
+         * The only relevant thing this callback does is set the water level to the read value.
+         */
+        this.client.publishes(MqttGlobalPublishFilter.ALL, publishedData -> {
+            final String receivedMessage = new String(publishedData.getPayloadAsBytes(), StandardCharsets.UTF_8);
+            System.out.println("\nReceived message: " + receivedMessage);
+            this.waterLevel = Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", ""));
+            System.out.println("Successfully parsed the following double: " + this.waterLevel);
+            System.out.println("\n\nReceiving messages...");
+        });
+        
         client.connect();
 
         /* Subscription of the client that runs on the backend. */
         client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
         System.out.println("Subscription occurred");
 
-        while (true) {
-            try (final Mqtt5Publishes publishes = client.publishes(MqttGlobalPublishFilter.ALL)) {
-                /* There are two versions of publishes.receive(), the one that takes no arguments
-                 * is blocking.
-                 */
-                String messageString = new String(publishes.receive().getPayloadAsBytes(), StandardCharsets.US_ASCII);
-                System.out.println("\nReceived message: " + messageString);
-                this.waterLevel = Double.parseDouble(messageString.replaceAll("(\\r|\\n)", ""));
-                System.out.println("Successfully parsed the following double: " + this.waterLevel);
-                System.out.println("\n\n Receiving messages...");
-                /* publishes.receive(1, TimeUnit.SECONDS).ifPresent(System.out::println);
-                publishes.receive(100, TimeUnit.MILLISECONDS).ifPresent(System.out::println);
-                System.out.println("\n\nSubscription and reception occurred\n\n"); */
-            } catch (Exception e) {
-                System.out.println("\n\nException occurred while subscribing!\n\n");
-                e.printStackTrace();
-            }
-        }
         /* UNREACHABLE CODE; ideally, the server should always be up. */
         /* client.disconnect();
         hiveMQ.stop();

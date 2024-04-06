@@ -5,14 +5,19 @@ package rivermonitoringservice;
 
 import java.util.Optional;
 
+import rivermonitoringservice.data.RiverMonitoringServiceData;
+import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
+import rivermonitoringservice.serial.NoMessageArrivedException;
 import rivermonitoringservice.serial.SerialCommunicator;
+import rivermonitoringservice.state.code.NormalState;
 import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
 
 public class RiverMonitoringService {
     private static final RiverMonitoringDashboardApplication dashboard = new RiverMonitoringDashboardApplication();
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
+    private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
     private static int valveOpeningLevel = 0; // the valve opening level
     private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
 
@@ -23,6 +28,13 @@ public class RiverMonitoringService {
     public static void main(String[] args) {
         setup(args);
         System.out.println(new RiverMonitoringService().getGreeting());
+        
+        // This code should be inserted in a while(true) loop in the future.
+        final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
+                                                                               valveOpeningLevel, 
+                                                                               Optional.of(dashboard.getOpening()), 
+                                                                               arduinoState);
+        fsm.handle(data);
         
     }
 
@@ -47,13 +59,50 @@ public class RiverMonitoringService {
         return RiverMonitoringService.arduinoState;
     }
 
-    public static void setWaterChannelControllerState(final WaterChannelControllerState state) {
-        RiverMonitoringService.arduinoState = state;
+    private static void setWaterChannelControllerState(final int receivedCode) {
+        switch (receivedCode) {
+            case 0:     RiverMonitoringService.arduinoState = WaterChannelControllerState.AUTO; 
+                        break;
+            case 1:     RiverMonitoringService.arduinoState = WaterChannelControllerState.MANUAL;
+                        break;
+            default:    System.out.println("Problem in setting Water Channel Controller state; received code was: "
+                                             + receivedCode
+                                             + ", expected: 0 for AUTO and 1 for MANUAL");
+                        RiverMonitoringService.arduinoState = WaterChannelControllerState.UNINITIALISED;
+                        break;
+        }
     }
 
     private static void setup(String[] args) {
         RiverMonitoringService.dashboard.startWebServer(args);
         RiverMonitoringService.mqttServer.startMqttServer();
-        serialCommunicator.start();
+        RiverMonitoringService.serialCommunicator.start();
+        /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */
+        RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
+        // await communication from arduino
+        try {
+            RiverMonitoringService.serialCommunicator.waitForSerialCommunication(5000);
+        } catch (NoMessageArrivedException e) {
+            System.out.println("No initial state of the Water Channel Controller was received in static method " +
+                                 "setup. Aborting.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+        RiverMonitoringService.setWaterChannelControllerState(RiverMonitoringService.serialCommunicator.getReceivedData());
+        /* Get the current valve opening level */
+        RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
+        // await communication from arduino
+        try {
+            RiverMonitoringService.serialCommunicator.waitForSerialCommunication(5000);
+        } catch (NoMessageArrivedException e) {
+            System.out.println("No initial opening level of the Water Channel Controller valve was received in static method " +
+                                 "setup. Aborting.");
+            e.printStackTrace();
+            System.exit(2);
+        }
+        RiverMonitoringService.valveOpeningLevel = RiverMonitoringService.serialCommunicator.getReceivedData();
+
+        RiverMonitoringService.fsm.changeState(new NormalState(fsm));
+        System.out.println("SETUP COMPLETED!!");
     }
 }

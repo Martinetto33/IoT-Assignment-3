@@ -11,4 +11,7 @@ public interface State {
     void onExit();
 
     String getStateAsString();
+
+    void evaluate(double waterLevel);
+
 }

@@ -67,6 +67,8 @@ public abstract class AbstractState implements State {
     /**
      * This method should be called from outside this class, right after calling the handle() method.
      * This is because the state might change after a call to this method.
+     * Currently, this method is called in the handle() method of the system finite state machine 
+     * {@link rivermonitoringservice.fsm.RiverMonitoringServiceFSM}.
      * @param waterLevel the current water level.
      */
     public abstract void evaluate(final double waterLevel); // to set the FSM state according to the water level

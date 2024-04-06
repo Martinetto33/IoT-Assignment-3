@@ -15,8 +15,11 @@ public class SerialCommunicator implements SerialPortEventListener {
     private SerialPort serialPort;
     private SerialParser serialParser;
     private int receivedData = 0; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
+    private volatile boolean hasMessageArrived;
 
-    public SerialCommunicator() {}
+    public SerialCommunicator() {
+        this.hasMessageArrived = false;
+    }
 
     @Override
     public synchronized void serialEvent(SerialPortEvent event) {
@@ -27,6 +30,7 @@ public class SerialCommunicator implements SerialPortEventListener {
                 //progressBar.setValue(Integer.parseInt(progress.replaceAll("(prog: |\\r|\\n)", "")));
                 final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
                 this.receivedData = Integer.parseInt(parsedString.replaceAll("(\\r|\\n)", ""));
+                this.hasMessageArrived = true;
                 System.out.println("Got the following opening level: " + this.receivedData);
             }
             catch (SerialPortException ex) {
@@ -86,7 +90,24 @@ public class SerialCommunicator implements SerialPortEventListener {
         }
     }
 
+    /**
+     * Waits for a serial event to occur. Try to avoid using this method,
+     * since it does busy waiting.
+     * @param timeInterval the maximum time interval to be waited, expressed in milliseconds.
+     */
+    public void waitForSerialCommunication(long timeInterval) throws NoMessageArrivedException {
+        final long start = System.currentTimeMillis();
+        /* Wait for a message to arrive. This is busy waiting,
+         * so the system should not spend much time here.
+         */
+        while (System.currentTimeMillis() - start < timeInterval && !this.hasMessageArrived) {}
+        if (!this.hasMessageArrived) {
+            throw new NoMessageArrivedException();
+        }
+    }
+
     public int getReceivedData() {
+        this.hasMessageArrived = false;
         return this.receivedData;
     }
 }
