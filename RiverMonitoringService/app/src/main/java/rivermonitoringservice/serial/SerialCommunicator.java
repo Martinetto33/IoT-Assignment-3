@@ -1,15 +1,20 @@
 package rivermonitoringservice.serial;
 
+import java.util.Optional;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
+import rivermonitoringservice.MessageID;
 
 public class SerialCommunicator implements SerialPortEventListener {
     private SerialPort serialPort;
     private SerialParser serialParser;
-    private int openingLevel = 0; // the valve opening level percentage
+    private int receivedData = 0; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
 
     public SerialCommunicator() {}
 
@@ -21,8 +26,8 @@ public class SerialCommunicator implements SerialPortEventListener {
                 //System.out.print(receivedData);
                 //progressBar.setValue(Integer.parseInt(progress.replaceAll("(prog: |\\r|\\n)", "")));
                 final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
-                this.openingLevel = Integer.parseInt(parsedString.replaceAll("(\\r|\\n)", ""));
-                System.out.println("Got the following opening level: " + this.openingLevel);
+                this.receivedData = Integer.parseInt(parsedString.replaceAll("(\\r|\\n)", ""));
+                System.out.println("Got the following opening level: " + this.receivedData);
             }
             catch (SerialPortException ex) {
                 System.out.println("Error in receiving string from COM-port: " + ex);
@@ -50,16 +55,38 @@ public class SerialCommunicator implements SerialPortEventListener {
             System.out.println("Error during the initialisation of the SerialCommunicator: " + ex);
         }
     }
-
+/* 
     public void writeToSerial(final int openingLevel) {
         try {
             this.serialPort.writeInt(openingLevel);
         } catch (SerialPortException e) {
             System.out.println("Error while writing on serial port.");
         }
+    } */
+
+    private void writeToSerial(final String message) {
+        try {
+            this.serialPort.writeString(message);
+        } catch (SerialPortException e) {
+            System.out.println("Error while trying to write << " + message
+                                + " >> to serial port!");
+            e.printStackTrace();
+        }
     }
 
-    public int getOpeningLevel() {
-        return this.openingLevel;
+    public void writeJsonToSerial(final MessageID messageID, final Optional<Integer> data) {
+        final ChannelControllerMessage msg = new ChannelControllerMessage(messageID, data);
+        try {
+            String result = new ObjectMapper().writeValueAsString(msg);
+            System.out.println("Successfully created JSON object: " + result);
+            this.writeToSerial(result);
+        } catch (JsonProcessingException e) {
+            System.out.println("Error while trying to write JSON object!");
+            e.printStackTrace();
+        }
+    }
+
+    public int getReceivedData() {
+        return this.receivedData;
     }
 }

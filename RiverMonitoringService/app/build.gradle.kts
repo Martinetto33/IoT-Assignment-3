@@ -35,6 +35,9 @@ dependencies {
     implementation("com.hivemq:hivemq-community-edition-embedded:2024.3")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.github.java-native:jssc:2.9.6")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.16.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.16.1")
 }
 
 application {

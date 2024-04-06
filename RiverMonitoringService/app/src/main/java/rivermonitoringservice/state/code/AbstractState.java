@@ -1,11 +1,12 @@
 package rivermonitoringservice.state.code;
 
-import rivermonitoringservice.state.api.State;
-
 import java.util.Objects;
-
+import java.util.Optional;
+import rivermonitoringservice.state.api.State;
 import rivermonitoringservice.Constants;
+import rivermonitoringservice.MessageID;
 import rivermonitoringservice.RiverMonitoringService;
+import rivermonitoringservice.WaterChannelControllerState;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
@@ -13,13 +14,6 @@ public abstract class AbstractState implements State {
     private final RiverMonitoringServiceFSM fsm;
     private double measurementFrequency;
     private double currentWaterLevel;
-    private WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
-
-    protected enum WaterChannelControllerState {
-        UNINITIALISED,
-        MANUAL,
-        AUTO
-    }
 
     public AbstractState(final double measurementFrequency, final double currentWaterLevel, final RiverMonitoringServiceFSM fsm) {
         this.measurementFrequency = measurementFrequency;
@@ -33,16 +27,16 @@ public abstract class AbstractState implements State {
     }
 
     public void handle(RiverMonitoringServiceData data) {
-        if (this.arduinoState == WaterChannelControllerState.UNINITIALISED) {
-            throw new IllegalStateException("The River Monitoring Service doesn't know if the Water Channel" +
+        if (data.arduinoState() == WaterChannelControllerState.UNINITIALISED) {
+            throw new IllegalStateException("The River Monitoring Service doesn't know if the Water Channel " +
                                              "Controller is in manual or automatic state.");
         }
         /* Most states require to take measurements and handle occasional inputs from frontend. */
         this.currentWaterLevel = data.waterLevel();
-        if (data.frontendRequiredOpeningPercentage().isPresent()) {
-            final int requiredPercentage = data.frontendRequiredOpeningPercentage().get();
-            if (data.valveOpeningPercentage() != requiredPercentage && this.arduinoState == WaterChannelControllerState.AUTO) {
-                // TODO: set arduino valve to new percentage
+        if (data.openingPercentageRequiredByFrontend().isPresent()) {
+            final int requiredPercentage = data.openingPercentageRequiredByFrontend().get();
+            if (data.valveOpeningPercentage() != requiredPercentage && data.arduinoState() == WaterChannelControllerState.AUTO) {
+                RiverMonitoringService.updateChannelController(MessageID.SET_OPENING_LEVEL, Optional.of(requiredPercentage));
             }
         }
         RiverMonitoringService.updateDashboard(this.currentWaterLevel, data.valveOpeningPercentage(), this.getStateAsString());
@@ -54,23 +48,11 @@ public abstract class AbstractState implements State {
         this.fsm.changeState(state);
     }
 
-    protected void setWaterChannelControllerState(final WaterChannelControllerState state) {
-        this.arduinoState = state;
-    }
-
     protected void setMeasurementFrequency(final double measurementFrequency) {
         this.measurementFrequency = measurementFrequency;
     }
 
-    public void setCurrentWaterLevel(final double waterLevel) {
-        this.currentWaterLevel = waterLevel;
-    }
-
     /* GETTERS */
-
-    protected WaterChannelControllerState getWaterChannelControllerState() {
-        return this.arduinoState;
-    }
 
     public double getMeasurementFrequency() {
         return this.measurementFrequency;

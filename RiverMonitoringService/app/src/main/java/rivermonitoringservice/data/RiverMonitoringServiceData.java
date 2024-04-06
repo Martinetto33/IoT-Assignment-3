@@ -2,6 +2,8 @@ package rivermonitoringservice.data;
 
 import java.util.Optional;
 
+import rivermonitoringservice.WaterChannelControllerState;
+
 /**
  * Record classes are immutable and provide public getters for their fields.
  * For further details see:
@@ -12,4 +14,5 @@ import java.util.Optional;
  */
 public record RiverMonitoringServiceData(double waterLevel,
                                          int valveOpeningPercentage,
-                                         Optional<Integer> frontendRequiredOpeningPercentage) {}
+                                         Optional<Integer> openingPercentageRequiredByFrontend,
+                                         WaterChannelControllerState arduinoState) {}

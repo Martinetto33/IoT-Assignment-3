@@ -3,6 +3,8 @@
  */
 package rivermonitoringservice;
 
+import java.util.Optional;
+
 import rivermonitoringservice.mqtt.MqttManager;
 import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
@@ -11,6 +13,8 @@ public class RiverMonitoringService {
     private static final RiverMonitoringDashboardApplication dashboard = new RiverMonitoringDashboardApplication();
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
+    private static int valveOpeningLevel = 0; // the valve opening level
+    private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
 
     public String getGreeting() {
         return "Hello World!2";
@@ -22,14 +26,29 @@ public class RiverMonitoringService {
         
     }
 
-    // TODO: serial communication
-    public static void updateChannelController() {}
+    /**
+     * Static method used for serial communication with Water Channel Controller.
+     * @param messageID the ID of the message; different messages are handled in different ways,
+     * as specified in the {@link rivermonitoringservice.MessageID} class.
+     * @param data an Optional containing the requested valve opening level, if needed.
+     */
+    public static void updateChannelController(final MessageID messageID, final Optional<Integer> data) {
+        RiverMonitoringService.serialCommunicator.writeJsonToSerial(messageID, data);
+    }
 
     public static void updateDashboard(final double waterLevel, final int valveOpeningPercentage, final String currentState) {
         // TODO: consider avoiding casting to int by allowing the dashboard to work with double data types
         RiverMonitoringService.dashboard.setWaterLevel((int) waterLevel);
         RiverMonitoringService.dashboard.setOpeningGatePercentage(valveOpeningPercentage);
         RiverMonitoringService.dashboard.setStatus(currentState);
+    }
+
+    public static WaterChannelControllerState getWaterChannelControllerState() {
+        return RiverMonitoringService.arduinoState;
+    }
+
+    public static void setWaterChannelControllerState(final WaterChannelControllerState state) {
+        RiverMonitoringService.arduinoState = state;
     }
 
     private static void setup(String[] args) {
