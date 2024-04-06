@@ -18,7 +18,7 @@ public class RiverMonitoringService {
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
-    private static int valveOpeningLevel = 0; // the valve opening level
+    private static int valveOpeningLevel = 0; // the valve opening level percentage
     private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
 
     public String getGreeting() {
@@ -29,13 +29,23 @@ public class RiverMonitoringService {
         setup(args);
         System.out.println(new RiverMonitoringService().getGreeting());
         
-        // This code should be inserted in a while(true) loop in the future.
+        // TODO: This code should be inserted in a while(true) loop in the future.
+        // TODO: consider improving the dashboard logic; as of now it always sends a non-empty Optional.
+        /* Checking and updating the Water Channel Controller state: */
+        serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
+        RiverMonitoringService.setWaterChannelControllerState(serialCommunicator.getReceivedData());
+        if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
+            System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
+            System.exit(3);
+        }
+        /* Checking and updating the Water Channel Controller valve opening level. */
+        serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
+        RiverMonitoringService.valveOpeningLevel = serialCommunicator.getReceivedData();
         final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
                                                                                valveOpeningLevel, 
                                                                                Optional.of(dashboard.getOpening()), 
                                                                                arduinoState);
         fsm.handle(data);
-        
     }
 
     /**
@@ -50,9 +60,20 @@ public class RiverMonitoringService {
 
     public static void updateDashboard(final double waterLevel, final int valveOpeningPercentage, final String currentState) {
         // TODO: consider avoiding casting to int by allowing the dashboard to work with double data types
+        // TODO: I used the dashboard and completely ignored the interface; this should be corrected
+        /* 
+         * PROBLEM: the dashboard interface doesn't offer methods to set the valve opening percentage.
+         * My idea would be to add a field in the html page seen by the user with a suggested opening
+         * level percentage, so as to allow the backend to communicate the optimal valve opening
+         * levels based on the state of the system.
+         */
         RiverMonitoringService.dashboard.setWaterLevel((int) waterLevel);
         RiverMonitoringService.dashboard.setOpeningGatePercentage(valveOpeningPercentage);
         RiverMonitoringService.dashboard.setStatus(currentState);
+    }
+
+    public static void updateESPMonitoringSystem(final int mFrequency) {
+        mqttServer.communicateNewMeasurementFrequency(mFrequency);
     }
 
     public static WaterChannelControllerState getWaterChannelControllerState() {

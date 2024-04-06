@@ -14,4 +14,5 @@ public interface RiverMonitoringDashboardApplicationInterface {
     String getStatus();
     //GET to obtain the opening percentage of gate from server
     int getOpening();
+    //TODO: add a method to allow the backend to at least suggest the correct valve opening level.
 }

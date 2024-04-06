@@ -1,5 +1,7 @@
 package rivermonitoringservice.state.api;
 
+import com.google.common.collect.Range;
+
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 
 public interface State {
@@ -14,4 +16,5 @@ public interface State {
 
     void evaluate(double waterLevel);
 
+    Range<Double> getAssociatedRange();
 }

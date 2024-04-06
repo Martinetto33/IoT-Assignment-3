@@ -2,6 +2,7 @@ package rivermonitoringservice.state.code;
 
 import java.util.Objects;
 import java.util.Optional;
+
 import rivermonitoringservice.state.api.State;
 import rivermonitoringservice.Constants;
 import rivermonitoringservice.MessageID;
@@ -12,10 +13,10 @@ import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public abstract class AbstractState implements State {
     private final RiverMonitoringServiceFSM fsm;
-    private double measurementFrequency;
+    private int measurementFrequency;
     private double currentWaterLevel;
 
-    public AbstractState(final double measurementFrequency, final double currentWaterLevel, final RiverMonitoringServiceFSM fsm) {
+    public AbstractState(final int measurementFrequency, final double currentWaterLevel, final RiverMonitoringServiceFSM fsm) {
         this.measurementFrequency = measurementFrequency;
         this.currentWaterLevel = currentWaterLevel;
         Objects.requireNonNull(fsm);
@@ -48,8 +49,9 @@ public abstract class AbstractState implements State {
         this.fsm.changeState(state);
     }
 
-    protected void setMeasurementFrequency(final double measurementFrequency) {
+    protected void setMeasurementFrequency(final int measurementFrequency) {
         this.measurementFrequency = measurementFrequency;
+        RiverMonitoringService.updateESPMonitoringSystem(measurementFrequency);
     }
 
     /* GETTERS */
@@ -62,6 +64,11 @@ public abstract class AbstractState implements State {
         return this.currentWaterLevel;
     }
 
+    /* A "gentle" setter */
+    protected void suggestValveOpeningLevel(final int openingLevelPercentage) {
+        // TODO
+    }
+
     public abstract String getStateAsString();
 
     /**
@@ -71,5 +78,26 @@ public abstract class AbstractState implements State {
      * {@link rivermonitoringservice.fsm.RiverMonitoringServiceFSM}.
      * @param waterLevel the current water level.
      */
-    public abstract void evaluate(final double waterLevel); // to set the FSM state according to the water level
+    public void evaluate(final double waterLevel) {
+        /* If the current state is appropriate for this water level,
+         * do nothing.
+         */
+        if (this.fsm.getCurrentState().getAssociatedRange().contains(waterLevel)) {
+            return;
+        } else {
+            if (Constants.lowRange.contains(waterLevel)) {
+                this.fsm.changeState(new AlarmTooLowState(this.fsm));
+            } else if (Constants.normalRange.contains(waterLevel)) {
+                this.fsm.changeState(new NormalState(this.fsm));
+            } else if (Constants.preHighRange.contains(waterLevel)) {
+                this.fsm.changeState(new PreAlarmTooHighState(this.fsm));
+            } else if (Constants.highRange.contains(waterLevel)) {
+                this.fsm.changeState(new AlarmTooHighState(this.fsm));
+            } else if (Constants.criticalRange.contains(waterLevel)) {
+                this.fsm.changeState(new AlarmTooHighCriticState(this.fsm));
+            } else {
+                System.out.println("Unearthly water level received: " + waterLevel);
+            }
+        }
+    }
 }

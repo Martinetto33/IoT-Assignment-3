@@ -9,6 +9,7 @@ import com.hivemq.client.mqtt.MqttGlobalPublishFilter;
 import com.hivemq.client.mqtt.datatypes.MqttQos;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client;
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.embedded.EmbeddedHiveMQ;
 import com.hivemq.embedded.EmbeddedHiveMQBuilder;
 
@@ -16,7 +17,8 @@ import rivermonitoringservice.Constants;
 
 public class MqttManager {
 
-    private static final String TOPIC_NAME = "esiot-2024/group-4/water-level";
+    private static final String WATER_LEVEL_TOPIC_NAME = "esiot-2024/group-4/water-level";
+    private static final String MEASUREMENT_FREQUENCY_TOPIC_NAME = "esiot-2024/group-4/measurement-frequency";
     private double waterLevel = Constants.waterLevel1; // initialising to safe water level value
     private Mqtt5AsyncClient client;
 
@@ -73,7 +75,7 @@ public class MqttManager {
         client.connect();
 
         /* Subscription of the client that runs on the backend. */
-        client.subscribeWith().topicFilter(MqttManager.TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
+        client.subscribeWith().topicFilter(MqttManager.WATER_LEVEL_TOPIC_NAME).qos(MqttQos.AT_LEAST_ONCE).send();
         System.out.println("Subscription occurred");
 
         /* UNREACHABLE CODE; ideally, the server should always be up. */
@@ -87,6 +89,18 @@ public class MqttManager {
             e.printStackTrace();
         }
         System.out.println("MQTT broker stopped correctly."); */
+    }
+
+    public void communicateNewMeasurementFrequency(final int mFrequency) {
+        final Mqtt5Publish publish = Mqtt5Publish.builder()
+                .topic(MqttManager.MEASUREMENT_FREQUENCY_TOPIC_NAME)
+                .payload(String.valueOf(mFrequency).getBytes())
+                .qos(MqttQos.AT_LEAST_ONCE)
+                .build();
+        this.client.publish(publish);
+        System.out.println("Successfully published measurement frequency: "
+                            + mFrequency
+                            + " to ESP (Water Monitoring System).");
     }
 
     public double getWaterLevel() {

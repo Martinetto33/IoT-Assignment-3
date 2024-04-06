@@ -1,5 +1,8 @@
 package rivermonitoringservice.state.code;
 
+import com.google.common.collect.Range;
+
+import rivermonitoringservice.Constants;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public class AlarmTooHighState extends AbstractState {
@@ -10,26 +13,20 @@ public class AlarmTooHighState extends AbstractState {
 
     @Override
     public void onEntry() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onEntry'");
+        this.setMeasurementFrequency(Constants.f2);
+        this.suggestValveOpeningLevel(Constants.tooHighOpeningLv);
     }
 
     @Override
-    public void onExit() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onExit'");
-    }
+    public void onExit() {}
 
     @Override
     public String getStateAsString() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getStateAsString'");
+        return "Alarm - too high";
     }
 
     @Override
-    public void evaluate(double waterLevel) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'evaluate'");
+    public Range<Double> getAssociatedRange() {
+        return Constants.highRange;
     }
-    
 }
