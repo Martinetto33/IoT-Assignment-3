@@ -9,10 +9,12 @@ public interface RiverMonitoringDashboardApplicationInterface {
     //POST to send data from web client to the server
     int dashboard(int gateOpening);
     //GET to obtain water level from server
-    int getLevel();
+    double getLevel();
     //GET to obtain status from server
     String getStatus();
     //GET to obtain the opening percentage of gate from server
     int getOpening();
     //TODO: add a method to allow the backend to at least suggest the correct valve opening level.
+    void setWaterLevel(double waterLevel);
+    void setSuggestedOpeningLevel(final String suggestedLevel);
 }

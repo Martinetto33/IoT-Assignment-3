@@ -67,7 +67,7 @@ public class RiverMonitoringService {
          * level percentage, so as to allow the backend to communicate the optimal valve opening
          * levels based on the state of the system.
          */
-        RiverMonitoringService.dashboard.setWaterLevel((int) waterLevel);
+        RiverMonitoringService.dashboard.setWaterLevel(waterLevel);
         RiverMonitoringService.dashboard.setOpeningGatePercentage(valveOpeningPercentage);
         RiverMonitoringService.dashboard.setStatus(currentState);
     }

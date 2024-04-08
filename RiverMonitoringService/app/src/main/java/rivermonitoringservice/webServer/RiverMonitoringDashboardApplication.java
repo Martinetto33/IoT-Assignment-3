@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootApplication
 @RestController
 public class RiverMonitoringDashboardApplication implements RiverMonitoringDashboardApplicationInterface {
-	private int waterLevel = 0;		        //indicates the height of the water
+	private double waterLevel = 0;		        //indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private String status = "a";			//indicates the status of the system
+    private String suggestedValveOpeningLevel = "";
     
     public void startWebServer(String[] args) {
         SpringApplication.run(RiverMonitoringDashboardApplication.class, args);
@@ -36,7 +37,7 @@ public class RiverMonitoringDashboardApplication implements RiverMonitoringDashb
     @Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
-    public int getLevel() {
+    public double getLevel() {
         return waterLevel;
     }
     
@@ -54,7 +55,7 @@ public class RiverMonitoringDashboardApplication implements RiverMonitoringDashb
         return this.openingGatePercentage;
     }
 
-    public void setWaterLevel(int waterLevel) {
+    public void setWaterLevel(double waterLevel) {
         this.waterLevel = waterLevel;
     }
     
@@ -64,6 +65,16 @@ public class RiverMonitoringDashboardApplication implements RiverMonitoringDashb
     
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/getSuggestedOpeningLevel")
+    public String getSuggestedOpeningLevel() {
+        return this.suggestedValveOpeningLevel;
+    }
+
+    public void setSuggestedOpeningLevel(final String suggestedLevel) {
+        this.suggestedValveOpeningLevel = suggestedLevel;
     }
 }
 
