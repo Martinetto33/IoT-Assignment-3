@@ -8,6 +8,7 @@ import java.util.Optional;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
+import rivermonitoringservice.serial.ChannelControllerAnswerMessage;
 import rivermonitoringservice.serial.NoMessageArrivedException;
 import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.state.code.NormalState;
@@ -35,14 +36,13 @@ public class RiverMonitoringService {
         /* Checking and updating the Water Channel Controller state: */
         while (true) {
             serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
-            RiverMonitoringService.setWaterChannelControllerState(serialCommunicator.getReceivedData());
+            RiverMonitoringService.handleWCCCommunications();
             if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
                 System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
                 System.exit(3);
             }
             /* Checking and updating the Water Channel Controller valve opening level. */
             serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
-            RiverMonitoringService.valveOpeningLevel = serialCommunicator.getReceivedData();
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
                                                                                 valveOpeningLevel, 
                                                                                 Optional.of(dashboard.getOpening()), 
@@ -84,18 +84,19 @@ public class RiverMonitoringService {
         return RiverMonitoringService.arduinoState;
     }
 
-    private static void setWaterChannelControllerState(final int receivedCode) {
-        switch (receivedCode) {
-            case 0:     RiverMonitoringService.arduinoState = WaterChannelControllerState.AUTO; 
-                        break;
-            case 1:     RiverMonitoringService.arduinoState = WaterChannelControllerState.MANUAL;
-                        break;
-            default:    System.out.println("Problem in setting Water Channel Controller state; received code was: "
-                                             + receivedCode
-                                             + ", expected: 0 for AUTO and 1 for MANUAL");
-                        RiverMonitoringService.arduinoState = WaterChannelControllerState.UNINITIALISED;
-                        break;
+    private static void handleWCCCommunications() {
+        if (serialCommunicator.hasMessageArrived()) {
+            final ChannelControllerAnswerMessage msg = serialCommunicator.getReceivedData();
+            if (ChannelControllerAnswerMessage.MESSAGE_TYPE_CONTROLLER_STATUS.equals(msg.getMessageType())) {
+                setWaterChannelControllerState(msg.getDataAsArduinoState());
+            } else if (ChannelControllerAnswerMessage.MESSAGE_TYPE_VALVE_LEVEL.equals(msg.getMessageType())) {
+                valveOpeningLevel = msg.getDataAsValveOpeningLevel();
+            }
         }
+    }
+
+    private static void setWaterChannelControllerState(final WaterChannelControllerState state) {
+        RiverMonitoringService.arduinoState = state;
     }
 
     private static void setup(String[] args) {
@@ -113,7 +114,7 @@ public class RiverMonitoringService {
             e.printStackTrace();
             System.exit(1);
         }
-        RiverMonitoringService.setWaterChannelControllerState(RiverMonitoringService.serialCommunicator.getReceivedData());
+        RiverMonitoringService.setWaterChannelControllerState(RiverMonitoringService.serialCommunicator.getReceivedData().getDataAsArduinoState());
         /* Get the current valve opening level */
         RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
         // await communication from arduino
@@ -125,7 +126,7 @@ public class RiverMonitoringService {
             e.printStackTrace();
             System.exit(2);
         }
-        RiverMonitoringService.valveOpeningLevel = RiverMonitoringService.serialCommunicator.getReceivedData();
+        RiverMonitoringService.valveOpeningLevel = RiverMonitoringService.serialCommunicator.getReceivedData().getDataAsValveOpeningLevel();
 
         RiverMonitoringService.fsm.changeState(new NormalState(fsm));
         System.out.println("SETUP COMPLETED!!");

@@ -2,6 +2,7 @@ package rivermonitoringservice.serial;
 
 import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jssc.SerialPort;
@@ -13,8 +14,8 @@ import rivermonitoringservice.MessageID;
 
 public class SerialCommunicator implements SerialPortEventListener {
     private SerialPort serialPort;
-    private SerialParser serialParser;
-    private int receivedData = 0; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
+    //private SerialParser serialParser;
+    private ChannelControllerAnswerMessage receivedData; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
     private volatile boolean hasMessageArrived;
 
     public SerialCommunicator() {
@@ -28,13 +29,21 @@ public class SerialCommunicator implements SerialPortEventListener {
                 String receivedData = serialPort.readString(event.getEventValue());
                 //System.out.print(receivedData);
                 //progressBar.setValue(Integer.parseInt(progress.replaceAll("(prog: |\\r|\\n)", "")));
-                final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
-                this.receivedData = Integer.parseInt(parsedString.replaceAll("(\"|\\r|\\n)", ""));
+                //final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
+                //this.receivedData = Integer.parseInt(parsedString.replaceAll("(\"|\\r|\\n)", ""));
+                ObjectMapper mapper = new ObjectMapper();
+                this.receivedData = mapper.readValue(receivedData, ChannelControllerAnswerMessage.class);
                 this.hasMessageArrived = true;
-                System.out.println("Got the following opening level: " + this.receivedData);
+                System.out.println("Got the following message: " + this.receivedData);
             }
             catch (SerialPortException ex) {
-                System.out.println("Error in receiving string from COM-port: " + ex);
+                System.out.println("Serial error in receiving string from COM-port: " + ex);
+            } catch (JsonMappingException e) {
+                System.out.println("Error while mapping received Json data: " + receivedData);
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                System.out.println("Error while processing received Json data: " + receivedData);
+                e.printStackTrace();
             }
         }
     }
@@ -45,7 +54,7 @@ public class SerialCommunicator implements SerialPortEventListener {
             return;
         }
         this.serialPort = new SerialPort(SerialPortList.getPortNames()[0]);
-        this.serialParser = new SerialParser();
+        //this.serialParser = new SerialParser();
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_9600, 
@@ -79,7 +88,7 @@ public class SerialCommunicator implements SerialPortEventListener {
     }
 
     public void writeJsonToSerial(final MessageID messageID, final Optional<Integer> data) {
-        final ChannelControllerMessage msg = new ChannelControllerMessage(messageID, data);
+        final ChannelControllerQueryMessage msg = new ChannelControllerQueryMessage(messageID, data);
         try {
             String result = new ObjectMapper().writeValueAsString(msg);
             System.out.println("Successfully created JSON object: " + result);
@@ -106,7 +115,11 @@ public class SerialCommunicator implements SerialPortEventListener {
         }
     }
 
-    public int getReceivedData() {
+    public boolean hasMessageArrived() {
+        return this.hasMessageArrived;
+    }
+
+    public ChannelControllerAnswerMessage getReceivedData() {
         this.hasMessageArrived = false;
         return this.receivedData;
     }
