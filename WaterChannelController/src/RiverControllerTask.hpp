@@ -3,6 +3,7 @@
 #include "RiverControllerFSM.hpp"
 #include "Task.hpp"
 #include "Sensors/SensorsController.hpp"
+#include "SerialCommunication.hpp"
 
 class RiverControllerTask : public Task {
     private:

@@ -14,16 +14,29 @@ import rivermonitoringservice.MessageID;
  * for further details.
  */
 public class ChannelControllerMessage {
-    private final MessageID messageID;
+    private final int messageID;
     private final int data;
 
     public ChannelControllerMessage(final MessageID message, final Optional<Integer> data) {
-        this.messageID = message;
+        switch(message) {
+            case GET_CONTROLLER_STATE:
+                this.messageID = 2; 
+                break;
+            case GET_OPENING_LEVEL:
+                this.messageID = 0;
+                break;
+            case SET_OPENING_LEVEL:
+                this.messageID = 1;
+                break;
+            default:
+                this.messageID = -1;
+                break;
+        }
         this.data = data.orElse(-1);
     }
 
     @JsonProperty("messageID")
-    public MessageID getMessageID() {
+    public int getMessageID() {
         return this.messageID;
     }
 

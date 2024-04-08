@@ -33,20 +33,23 @@ public class RiverMonitoringService {
         // TODO: This code should be inserted in a while(true) loop in the future.
         // TODO: consider improving the dashboard logic; as of now it always sends a non-empty Optional.
         /* Checking and updating the Water Channel Controller state: */
-        serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
-        RiverMonitoringService.setWaterChannelControllerState(serialCommunicator.getReceivedData());
-        if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
-            System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
-            System.exit(3);
+        while (true) {
+            serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
+            RiverMonitoringService.setWaterChannelControllerState(serialCommunicator.getReceivedData());
+            if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
+                System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
+                System.exit(3);
+            }
+            /* Checking and updating the Water Channel Controller valve opening level. */
+            serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
+            RiverMonitoringService.valveOpeningLevel = serialCommunicator.getReceivedData();
+            final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
+                                                                                valveOpeningLevel, 
+                                                                                Optional.of(dashboard.getOpening()), 
+                                                                                arduinoState);
+            RiverMonitoringService.updateDashboard(data.waterLevel(), valveOpeningLevel, fsm.getCurrentState().getStateAsString());
+            fsm.handle(data);
         }
-        /* Checking and updating the Water Channel Controller valve opening level. */
-        serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
-        RiverMonitoringService.valveOpeningLevel = serialCommunicator.getReceivedData();
-        final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
-                                                                               valveOpeningLevel, 
-                                                                               Optional.of(dashboard.getOpening()), 
-                                                                               arduinoState);
-        fsm.handle(data);
     }
 
     /**

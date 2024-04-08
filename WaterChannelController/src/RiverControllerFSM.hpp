@@ -33,7 +33,7 @@ class RiverControllerFSM {
         AbstractFSM<riverControllerMacroStates> macroFSM;
         AbstractFSM<riverControllerMicroStates> microFSM;
     public:
-        RiverControllerFSM() : macroFSM(MANUAL), microFSM(NORMAL) {} /* This syntax is weird, but it's needed because there is no
+        RiverControllerFSM() : macroFSM(AUTO), microFSM(NORMAL) {} /* This syntax is weird, but it's needed because there is no
                                                                     no default constructor for the AbstractFSM.
                                                                     
                                                                     More about that at: 

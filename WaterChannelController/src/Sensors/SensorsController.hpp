@@ -42,6 +42,7 @@ class SensorsController
         int controllerOpenGate();
         int controllerCloseGate();
         int controllerSetGate(int angle);
+        int getAngle();
 
         /* Sonar management */
         float controllerMeasureDistance();

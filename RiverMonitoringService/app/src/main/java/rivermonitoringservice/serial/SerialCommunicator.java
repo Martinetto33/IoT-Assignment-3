@@ -29,7 +29,7 @@ public class SerialCommunicator implements SerialPortEventListener {
                 //System.out.print(receivedData);
                 //progressBar.setValue(Integer.parseInt(progress.replaceAll("(prog: |\\r|\\n)", "")));
                 final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
-                this.receivedData = Integer.parseInt(parsedString.replaceAll("(\\r|\\n)", ""));
+                this.receivedData = Integer.parseInt(parsedString.replaceAll("(\"|\\r|\\n)", ""));
                 this.hasMessageArrived = true;
                 System.out.println("Got the following opening level: " + this.receivedData);
             }

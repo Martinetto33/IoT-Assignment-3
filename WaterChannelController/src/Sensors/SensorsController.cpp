@@ -56,6 +56,10 @@ int SensorsController::controllerSetGate(int angle)
     return this->servo.getAngle();
 }
 
+int SensorsController::getAngle() {
+    return this->servo.getAngle();
+}
+
 /* Sonar management */
 float SensorsController::controllerMeasureDistance()
 {

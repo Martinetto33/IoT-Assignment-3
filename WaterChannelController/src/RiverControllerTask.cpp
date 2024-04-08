@@ -9,6 +9,8 @@ RiverControllerTask::RiverControllerTask()
 
 void RiverControllerTask::tick(int period)
 {
+    //Serial.println("Tick");
+    interpretMessage(this->sensorController.getAngle(), this->fsm.getMacroState(), this->sensorController);
     if (this->fsm.getMacroState() == AUTO) {
         this->automaticRoutine(period);
     } else {
