@@ -12,9 +12,10 @@ import rivermonitoringservice.serial.NoMessageArrivedException;
 import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.state.code.NormalState;
 import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
+import rivermonitoringservice.webServer.RiverMonitoringDashboardApplicationInterface;
 
 public class RiverMonitoringService {
-    private static final RiverMonitoringDashboardApplication dashboard = new RiverMonitoringDashboardApplication();
+    private static final RiverMonitoringDashboardApplicationInterface dashboard = new RiverMonitoringDashboardApplication();
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
@@ -68,7 +69,7 @@ public class RiverMonitoringService {
          * levels based on the state of the system.
          */
         RiverMonitoringService.dashboard.setWaterLevel(waterLevel);
-        RiverMonitoringService.dashboard.setOpeningGatePercentage(valveOpeningPercentage);
+        RiverMonitoringService.dashboard.setSuggestedOpeningLevel(String.valueOf(valveOpeningPercentage));
         RiverMonitoringService.dashboard.setStatus(currentState);
     }
 

@@ -16,5 +16,7 @@ public interface RiverMonitoringDashboardApplicationInterface {
     int getOpening();
     //TODO: add a method to allow the backend to at least suggest the correct valve opening level.
     void setWaterLevel(double waterLevel);
-    void setSuggestedOpeningLevel(final String suggestedLevel);
+    void setSuggestedOpeningLevel(String suggestedLevel);
+    void setStatus(String status);
+    void startWebServer(String[] args);
 }
