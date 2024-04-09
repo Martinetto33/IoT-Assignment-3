@@ -6,46 +6,34 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jssc.SerialPort;
-import jssc.SerialPortEvent;
-import jssc.SerialPortEventListener;
-import jssc.SerialPortException;
 import jssc.SerialPortList;
 import rivermonitoringservice.MessageID;
+import rivermonitoringservice.serial.professor.CommChannel;
+import rivermonitoringservice.serial.professor.SerialCommChannel;
 
-public class SerialCommunicator implements SerialPortEventListener {
-    private SerialPort serialPort;
-    //private SerialParser serialParser;
+public class SerialCommunicator {
+    private CommChannel commChannel;
     private ChannelControllerAnswerMessage receivedData; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
-    private volatile boolean hasMessageArrived;
 
-    public SerialCommunicator() {
-        this.hasMessageArrived = false;
-    }
+    public SerialCommunicator() {}
 
-    @Override
-    public synchronized void serialEvent(SerialPortEvent event) {
-        if(event.getEventType() == SerialPort.MASK_RXCHAR && event.getEventValue() > 0) {
-            try {
-                String receivedData = serialPort.readString(event.getEventValue());
-                //System.out.print(receivedData);
-                //progressBar.setValue(Integer.parseInt(progress.replaceAll("(prog: |\\r|\\n)", "")));
-                //final String parsedString = this.serialParser.parseReceivedMessage(receivedData);
-                //this.receivedData = Integer.parseInt(parsedString.replaceAll("(\"|\\r|\\n)", ""));
-                ObjectMapper mapper = new ObjectMapper();
-                this.receivedData = mapper.readValue(receivedData, ChannelControllerAnswerMessage.class);
-                this.hasMessageArrived = true;
-                System.out.println("Got the following message: " + this.receivedData);
-            }
-            catch (SerialPortException ex) {
-                System.out.println("Serial error in receiving string from COM-port: " + ex);
-            } catch (JsonMappingException e) {
-                System.out.println("Error while mapping received Json data: " + receivedData);
-                e.printStackTrace();
-            } catch (JsonProcessingException e) {
-                System.out.println("Error while processing received Json data: " + receivedData);
-                e.printStackTrace();
-            }
-        }
+    public ChannelControllerAnswerMessage getReceivedData() {
+        try {
+            String serialData = this.commChannel.receiveMsg();
+            ObjectMapper mapper = new ObjectMapper();
+            this.receivedData = mapper.readValue(serialData, ChannelControllerAnswerMessage.class);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(4);
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+            System.exit(5);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            System.exit(6);
+        } 
+        System.out.println("Got the following message: " + this.receivedData);
+        return this.receivedData;
     }
 
     public void start() {
@@ -53,19 +41,11 @@ public class SerialCommunicator implements SerialPortEventListener {
             System.out.println("No serial communication detected; maybe connect your Arduino?");
             return;
         }
-        this.serialPort = new SerialPort(SerialPortList.getPortNames()[0]);
-        //this.serialParser = new SerialParser();
         try {
-            serialPort.openPort();
-            serialPort.setParams(SerialPort.BAUDRATE_9600, 
-                                 SerialPort.DATABITS_8,
-                                 SerialPort.STOPBITS_1,
-                                 SerialPort.PARITY_NONE);
-            serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN |
-                                          SerialPort.FLOWCONTROL_RTSCTS_OUT);
-            serialPort.addEventListener(this, SerialPort.MASK_RXCHAR);                   
-        } catch (SerialPortException ex) {
-            System.out.println("Error during the initialisation of the SerialCommunicator: " + ex);
+            this.commChannel = new SerialCommChannel(SerialPortList.getPortNames()[0], SerialPort.BAUDRATE_9600);
+        } catch (Exception e) {
+            System.out.println("Error while creating professor's CommChannel.");
+            e.printStackTrace();
         }
     }
 /* 
@@ -78,13 +58,7 @@ public class SerialCommunicator implements SerialPortEventListener {
     } */
 
     private void writeToSerial(final String message) {
-        try {
-            this.serialPort.writeString(message);
-        } catch (SerialPortException e) {
-            System.out.println("Error while trying to write << " + message
-                                + " >> to serial port!");
-            e.printStackTrace();
-        }
+        this.commChannel.sendMsg(message);
     }
 
     public void writeJsonToSerial(final MessageID messageID, final Optional<Integer> data) {
@@ -92,7 +66,7 @@ public class SerialCommunicator implements SerialPortEventListener {
         try {
             String result = new ObjectMapper().writeValueAsString(msg);
             System.out.println("Successfully created JSON object: " + result);
-            this.writeToSerial(result);
+            this.writeToSerial("result");
         } catch (JsonProcessingException e) {
             System.out.println("Error while trying to write JSON object!");
             e.printStackTrace();
@@ -109,18 +83,13 @@ public class SerialCommunicator implements SerialPortEventListener {
         /* Wait for a message to arrive. This is busy waiting,
          * so the system should not spend much time here.
          */
-        while (System.currentTimeMillis() - start < timeInterval && !this.hasMessageArrived) {}
-        if (!this.hasMessageArrived) {
+        while (System.currentTimeMillis() - start < timeInterval && !this.commChannel.isMsgAvailable()) {}
+        if (!this.commChannel.isMsgAvailable()) {
             throw new NoMessageArrivedException();
         }
     }
 
     public boolean hasMessageArrived() {
-        return this.hasMessageArrived;
-    }
-
-    public ChannelControllerAnswerMessage getReceivedData() {
-        this.hasMessageArrived = false;
-        return this.receivedData;
+        return this.commChannel.isMsgAvailable();
     }
 }

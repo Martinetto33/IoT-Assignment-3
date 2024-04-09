@@ -20,6 +20,9 @@ void RiverControllerTask::tick(int period)
 
 void RiverControllerTask::automaticRoutine(int period)
 {
+    /* TODO: micro-states are useless in the water channel controller; the backend
+    simply instructs the channel controller how to open the gate; the channel controller
+    doesn't know the state of the whole system. */
     switch(fsm.getMicroState()) {
         case NORMAL:
         {

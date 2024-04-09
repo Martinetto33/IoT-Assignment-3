@@ -14,7 +14,7 @@ import rivermonitoringservice.WaterChannelControllerState;
  * different methods are provided for the latter.
  */
 public class ChannelControllerAnswerMessage {
-    public static final String MESSAGE_TYPE_CONTROLLER_STATUS = "status";
+    public static final String MESSAGE_TYPE_CONTROLLER_STATUS = "state";
     public static final String MESSAGE_TYPE_VALVE_LEVEL = "valve";
     private final String messageType;
     private final int data;

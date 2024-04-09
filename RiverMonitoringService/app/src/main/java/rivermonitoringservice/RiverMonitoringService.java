@@ -29,9 +29,7 @@ public class RiverMonitoringService {
 
     public static void main(String[] args) {
         setup(args);
-        System.out.println(new RiverMonitoringService().getGreeting());
-        
-        // TODO: This code should be inserted in a while(true) loop in the future.
+        System.out.println(new RiverMonitoringService().getGreeting());        
         // TODO: consider improving the dashboard logic; as of now it always sends a non-empty Optional.
         /* Checking and updating the Water Channel Controller state: */
         while (true) {
@@ -100,8 +98,8 @@ public class RiverMonitoringService {
     }
 
     private static void setup(String[] args) {
-        RiverMonitoringService.dashboard.startWebServer(args);
-        RiverMonitoringService.mqttServer.startMqttServer();
+        //RiverMonitoringService.dashboard.startWebServer(args);
+        //RiverMonitoringService.mqttServer.startMqttServer();
         RiverMonitoringService.serialCommunicator.start();
         /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */
         RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
