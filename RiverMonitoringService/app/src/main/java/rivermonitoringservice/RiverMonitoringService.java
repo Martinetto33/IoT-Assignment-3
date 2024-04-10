@@ -98,14 +98,14 @@ public class RiverMonitoringService {
     }
 
     private static void setup(String[] args) {
-        //RiverMonitoringService.dashboard.startWebServer(args);
-        //RiverMonitoringService.mqttServer.startMqttServer();
+        RiverMonitoringService.dashboard.startWebServer(args);
+        RiverMonitoringService.mqttServer.startMqttServer();
         RiverMonitoringService.serialCommunicator.start();
         /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */
         RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
         // await communication from arduino
         try {
-            RiverMonitoringService.serialCommunicator.waitForSerialCommunication(5000);
+            System.out.println("RECEIVED MESSAGE IN STATIC METHOD SETUP: " + RiverMonitoringService.serialCommunicator.waitForSerialCommunication());
         } catch (NoMessageArrivedException e) {
             System.out.println("No initial state of the Water Channel Controller was received in static method " +
                                  "setup. Aborting.");
@@ -117,7 +117,7 @@ public class RiverMonitoringService {
         RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
         // await communication from arduino
         try {
-            RiverMonitoringService.serialCommunicator.waitForSerialCommunication(5000);
+            System.out.println("RECEIVED MESSAGE IN STATIC METHOD SETUP: " + RiverMonitoringService.serialCommunicator.waitForSerialCommunication());
         } catch (NoMessageArrivedException e) {
             System.out.println("No initial opening level of the Water Channel Controller valve was received in static method " +
                                  "setup. Aborting.");

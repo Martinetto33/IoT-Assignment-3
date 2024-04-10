@@ -14,8 +14,8 @@ int SONAR_PIN_TRIG = 10; // the output pin of the sonar
 /* WiFi network info, replace with actual values.
 REMEMBER NOT TO COMMIT THEM TO ONLINE REPOSITORY!!!!
  */
-const char* ssid = "INSERT_YOUR_NETWORK_NAME";
-const char* password = "INSERT_YOUR_NETWORK_PASSWORD";
+const char* ssid = "Martin Router King";
+const char* password = "Martynnn33";
 
 /* MQTT server address, DO NOT change this value. */
 const char* mqtt_server = "broker.hivemq.com";

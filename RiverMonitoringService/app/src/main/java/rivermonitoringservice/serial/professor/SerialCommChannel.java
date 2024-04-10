@@ -26,10 +26,32 @@ public class SerialCommChannel implements CommChannel, SerialPortEventListener{
 
 		// serialPort.addEventListener(this, SerialPort.MASK_RXCHAR);
 		serialPort.addEventListener(this);
+		this.waitForArduinoToSynchronise();
+	}
+
+	/**
+	 * Calling 'openPort()' causes the Arduino to automatically reset.
+	 * The setup() function of the program running on the board prints
+	 * "setup" on the serial once it's completed. The backend receives
+	 * that code and knows that the board is now ready to further
+	 * communicate.
+	 */
+	private void waitForArduinoToSynchronise() {
+		System.out.println("Waiting for Channel Controller to synchronise...");
+		try {
+			final String result = this.receiveMsg();
+			if ("setup".trim().equals(result)) {
+				System.out.println("Arduino correctly synchronised.");
+			}
+		} catch (InterruptedException e) {
+			System.out.println("Error while waiting for Arduino to synchronise.");
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void sendMsg(String msg) {
+		System.out.println("Called sendMsg() in SerialCommChannel, for message: " + msg);
 		char[] array = (msg+"\n").toCharArray();
 		byte[] bytes = new byte[array.length];
 		for (int i = 0; i < array.length; i++){

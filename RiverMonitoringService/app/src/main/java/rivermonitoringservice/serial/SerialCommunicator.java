@@ -14,23 +14,20 @@ import rivermonitoringservice.serial.professor.SerialCommChannel;
 public class SerialCommunicator {
     private CommChannel commChannel;
     private ChannelControllerAnswerMessage receivedData; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
+    private String jsonString;
 
     public SerialCommunicator() {}
 
     public ChannelControllerAnswerMessage getReceivedData() {
         try {
-            String serialData = this.commChannel.receiveMsg();
             ObjectMapper mapper = new ObjectMapper();
-            this.receivedData = mapper.readValue(serialData, ChannelControllerAnswerMessage.class);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            System.exit(4);
+            this.receivedData = mapper.readValue(this.jsonString, ChannelControllerAnswerMessage.class);
         } catch (JsonMappingException e) {
             e.printStackTrace();
-            System.exit(5);
+            System.exit(4);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            System.exit(6);
+            System.exit(5);
         } 
         System.out.println("Got the following message: " + this.receivedData);
         return this.receivedData;
@@ -66,25 +63,19 @@ public class SerialCommunicator {
         try {
             String result = new ObjectMapper().writeValueAsString(msg);
             System.out.println("Successfully created JSON object: " + result);
-            this.writeToSerial("result");
+            this.writeToSerial(result);
         } catch (JsonProcessingException e) {
             System.out.println("Error while trying to write JSON object!");
             e.printStackTrace();
         }
     }
 
-    /**
-     * Waits for a serial event to occur. Try to avoid using this method,
-     * since it does busy waiting.
-     * @param timeInterval the maximum time interval to be waited, expressed in milliseconds.
-     */
-    public void waitForSerialCommunication(long timeInterval) throws NoMessageArrivedException {
-        final long start = System.currentTimeMillis();
-        /* Wait for a message to arrive. This is busy waiting,
-         * so the system should not spend much time here.
-         */
-        while (System.currentTimeMillis() - start < timeInterval && !this.commChannel.isMsgAvailable()) {}
-        if (!this.commChannel.isMsgAvailable()) {
+    public String waitForSerialCommunication() throws NoMessageArrivedException {
+        try {
+            this.jsonString = this.commChannel.receiveMsg();
+            return this.jsonString;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
             throw new NoMessageArrivedException();
         }
     }

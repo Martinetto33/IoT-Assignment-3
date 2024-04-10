@@ -14,6 +14,7 @@ Task* task;
 void setup() {
   Serial.begin(9600);
   task = new RiverControllerTask();
+  Serial.println("setup"); // to synchronise with the backend after openPort() call
 }
 
 void loop() {
