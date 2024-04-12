@@ -5,6 +5,7 @@ package rivermonitoringservice;
 
 import java.util.Optional;
 
+import rivermonitoringservice.SharedMemory.SharedMemory;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
@@ -20,6 +21,7 @@ public class RiverMonitoringService {
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
+    private static final SharedMemory sharedMemory = new SharedMemory();
     private static int valveOpeningLevel = 0; // the valve opening level percentage
     private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
 
@@ -69,9 +71,9 @@ public class RiverMonitoringService {
          * level percentage, so as to allow the backend to communicate the optimal valve opening
          * levels based on the state of the system.
          */
-        RiverMonitoringService.dashboard.setWaterLevel(waterLevel);
-        RiverMonitoringService.dashboard.setSuggestedOpeningLevel(String.valueOf(valveOpeningPercentage));
-        RiverMonitoringService.dashboard.setStatus(currentState);
+        RiverMonitoringService.sharedMemory.setWaterLevel(waterLevel);
+        RiverMonitoringService.sharedMemory.setSuggestedValveOpeningLevel(String.valueOf(valveOpeningPercentage));
+        RiverMonitoringService.sharedMemory.setStatus(currentState);
     }
 
     public static void updateESPMonitoringSystem(final int mFrequency) {
@@ -98,7 +100,7 @@ public class RiverMonitoringService {
     }
 
     private static void setup(String[] args) {
-        RiverMonitoringService.dashboard.startWebServer(args);
+        RiverMonitoringService.dashboard.startWebServer(args, sharedMemory);
         RiverMonitoringService.mqttServer.startMqttServer();
         RiverMonitoringService.serialCommunicator.start();
         /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */

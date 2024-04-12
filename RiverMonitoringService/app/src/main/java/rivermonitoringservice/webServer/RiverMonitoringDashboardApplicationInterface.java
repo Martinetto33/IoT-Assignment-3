@@ -1,4 +1,7 @@
 package rivermonitoringservice.webServer;
+
+import rivermonitoringservice.SharedMemory.SharedMemory;
+
 /*
  *  the methods used to carry out communication between client and server through the use of post and get requests, 
  *  the first are used to update values in the server, while the second is used to obtain values from the server.
@@ -15,8 +18,5 @@ public interface RiverMonitoringDashboardApplicationInterface {
     //GET to obtain the opening percentage of gate from server
     int getOpening();
     //TODO: add a method to allow the backend to at least suggest the correct valve opening level.
-    void setWaterLevel(double waterLevel);
-    void setSuggestedOpeningLevel(String suggestedLevel);
-    void setStatus(String status);
-    void startWebServer(String[] args);
+    void startWebServer(String[] args, SharedMemory sharedMemory);
 }

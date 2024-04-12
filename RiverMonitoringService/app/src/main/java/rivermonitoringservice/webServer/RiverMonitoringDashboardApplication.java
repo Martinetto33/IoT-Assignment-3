@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import rivermonitoringservice.SharedMemory.SharedMemory;
+
 @SpringBootApplication
 @RestController
 public class RiverMonitoringDashboardApplication implements RiverMonitoringDashboardApplicationInterface {
-	private double waterLevel = 0;		        //indicates the height of the water
-	private int openingGatePercentage = 0;	//indicates the opening of the valve %
-	private String status = "a";			//indicates the status of the system
-    private String suggestedValveOpeningLevel = "";
+	private SharedMemory shMemory; 
     
-    public void startWebServer(String[] args) {
+    public void startWebServer(String[] args, SharedMemory sharedMemory) {
         SpringApplication.run(RiverMonitoringDashboardApplication.class, args);
+        this.shMemory = sharedMemory;
     }
     
     @Override
@@ -27,54 +27,38 @@ public class RiverMonitoringDashboardApplication implements RiverMonitoringDashb
     @PostMapping("/dashboard")
     public int dashboard(@RequestParam(value = "level")int gateOpening) {
         try {
-			this.openingGatePercentage = gateOpening;
+            this.shMemory.setOpeningGatePercentage(gateOpening);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return this.openingGatePercentage;
+		return this.shMemory.getOpeningGatePercentage();
     }
     
     @Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
     public double getLevel() {
-        return waterLevel;
+        return this.shMemory.getWaterLevel();
     }
     
 	@Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getStatus")
     public String getStatus() {
-        return this.status;
+        return this.shMemory.getStatus();
     }
     
 	@Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getGatePercentage")
     public int getOpening() {
-        return this.openingGatePercentage;
-    }
-
-    public void setWaterLevel(double waterLevel) {
-        this.waterLevel = waterLevel;
-    }
-    
-    public void setOpeningGatePercentage(int openingGatePercentage) {
-        this.openingGatePercentage = openingGatePercentage;
-    }
-    
-    public void setStatus(String status) {
-        this.status = status;
+        return this.shMemory.getOpeningGatePercentage();
     }
 
     @CrossOrigin(origins = "*")
     @GetMapping("/getSuggestedOpeningLevel")
     public String getSuggestedOpeningLevel() {
-        return this.suggestedValveOpeningLevel;
-    }
-
-    public void setSuggestedOpeningLevel(final String suggestedLevel) {
-        this.suggestedValveOpeningLevel = suggestedLevel;
+        return this.shMemory.getSuggestedValveOpeningLevel();
     }
 }
 
