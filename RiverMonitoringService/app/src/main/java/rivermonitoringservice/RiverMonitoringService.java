@@ -5,6 +5,11 @@ package rivermonitoringservice;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
@@ -12,11 +17,15 @@ import rivermonitoringservice.serial.ChannelControllerAnswerMessage;
 import rivermonitoringservice.serial.NoMessageArrivedException;
 import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.state.code.NormalState;
+import rivermonitoringservice.webServer.DashboardClone;
+import rivermonitoringservice.webServer.DashboardController;
 import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
 import rivermonitoringservice.webServer.RiverMonitoringDashboardApplicationInterface;
 
+@SpringBootApplication
 public class RiverMonitoringService {
-    private static final RiverMonitoringDashboardApplicationInterface dashboard = new RiverMonitoringDashboardApplication();
+    @Autowired
+    private static final DashboardController dashboardController = new DashboardController(new DashboardClone());
     private static final MqttManager mqttServer = new MqttManager();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
@@ -28,6 +37,7 @@ public class RiverMonitoringService {
     }
 
     public static void main(String[] args) {
+        SpringApplication.run(RiverMonitoringService.class, args);
         setup(args);
         System.out.println(new RiverMonitoringService().getGreeting());        
         // TODO: consider improving the dashboard logic; as of now it always sends a non-empty Optional.
@@ -43,10 +53,12 @@ public class RiverMonitoringService {
             serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
                                                                                 valveOpeningLevel, 
-                                                                                Optional.of(dashboard.getOpening()), 
+                                                                                Optional.of(dashboardController.getOpening()), 
                                                                                 arduinoState);
+            System.out.println("Sending to dashboard: " + data.waterLevel());
             RiverMonitoringService.updateDashboard(data.waterLevel(), valveOpeningLevel, fsm.getCurrentState().getStateAsString());
-            fsm.handle(data);
+            System.out.println("Dashboard level: " + dashboardController.getLevel());
+            //fsm.handle(data); //TODO: dipendenza circolare da sistemare al cambio di stato
         }
     }
 
@@ -69,9 +81,9 @@ public class RiverMonitoringService {
          * level percentage, so as to allow the backend to communicate the optimal valve opening
          * levels based on the state of the system.
          */
-        RiverMonitoringService.dashboard.setWaterLevel(waterLevel);
-        RiverMonitoringService.dashboard.setSuggestedOpeningLevel(String.valueOf(valveOpeningPercentage));
-        RiverMonitoringService.dashboard.setStatus(currentState);
+        RiverMonitoringService.dashboardController.setWaterLevel(waterLevel);
+        RiverMonitoringService.dashboardController.setSuggestedOpeningLevel(String.valueOf(valveOpeningPercentage));
+        RiverMonitoringService.dashboardController.setStatus(currentState);
     }
 
     public static void updateESPMonitoringSystem(final int mFrequency) {
@@ -98,7 +110,7 @@ public class RiverMonitoringService {
     }
 
     private static void setup(String[] args) {
-        RiverMonitoringService.dashboard.startWebServer(args);
+        //RiverMonitoringService.dashboardController.startWebServer(args);
         RiverMonitoringService.mqttServer.startMqttServer();
         RiverMonitoringService.serialCommunicator.start();
         /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */

@@ -10,14 +10,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Random;
+
 @SpringBootApplication
 @RestController
 public class RiverMonitoringDashboardApplication implements RiverMonitoringDashboardApplicationInterface {
-	private static int waterLevel = 0;		//indicates the height of the water
+	private static double waterLevel = 0;		//indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private String status = "a";			//indicates the status of the system
+    private static Random random = new Random();
     public static void main(String[] args) {
       	SpringApplication.run(RiverMonitoringDashboardApplication.class, args);
+        RiverMonitoringDashboardApplication.waterLevel = random.nextDouble(100.0); 
     }
 
     @Override
@@ -35,7 +39,7 @@ public class RiverMonitoringDashboardApplication implements RiverMonitoringDashb
     @Override
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
-    public int getLevel() {
+    public double getLevel() {
         return waterLevel;
     }
 

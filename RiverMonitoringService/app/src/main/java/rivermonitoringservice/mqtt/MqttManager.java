@@ -66,10 +66,10 @@ public class MqttManager {
          */
         this.client.publishes(MqttGlobalPublishFilter.ALL, publishedData -> {
             final String receivedMessage = new String(publishedData.getPayloadAsBytes(), StandardCharsets.UTF_8);
-            System.out.println("\nReceived message: " + receivedMessage);
+            //System.out.println("\nReceived message: " + receivedMessage);
             this.waterLevel = Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", ""));
-            System.out.println("Successfully parsed the following double: " + this.waterLevel);
-            System.out.println("\n\nReceiving messages...");
+            //System.out.println("Successfully parsed the following double: " + this.waterLevel);
+            //System.out.println("\n\nReceiving messages...");
         });
         
         client.connect();

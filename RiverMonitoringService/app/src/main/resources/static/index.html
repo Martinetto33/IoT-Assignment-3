@@ -27,7 +27,6 @@
         <input type="range" min="1" max="100" value="50" id="slider" class="send">
         <p>Slider value: <span id="sliderValue">50</span></p>
     </div>
-    <p>Suggested valve opening level: <span id="suggestedOpeningLevel">N/D</span></p>
     <div style="height: 400px;" id="chartContainer"> <!-- Set a fixed height for the chart's container -->
         <canvas id="myChart"></canvas>
     </div>
@@ -37,7 +36,6 @@
         let sliderValue = document.getElementById('sliderValue');
         let waterLevel = document.getElementById('waterLevel');
         let status = document.getElementById('status');
-        let suggestedOpeningLevel = document.getElementById('suggestedOpeningLevel');
 
         let ctx = document.getElementById('myChart').getContext('2d');
         let myChart = new Chart(ctx, {
@@ -121,15 +119,6 @@
             };
             xhr3.open("GET", "http://localhost:8080/getGatePercentage", true);
             xhr3.send();
-
-            var xhr4 = new XMLHttpRequest();
-            xhr4.onreadystatechange = function() {
-                if (xhr4.readyState == XMLHttpRequest.DONE) {
-                    suggestedOpeningLevel = xhr4.responseText;
-                }
-            };
-            xhr4.open("GET", "http://localhost:8080/getSuggestedOpeningLevel", true);
-            xhr4.send();
 
             setTimeout(poll, 100);
         }
