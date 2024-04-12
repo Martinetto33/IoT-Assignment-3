@@ -3,6 +3,7 @@ package rivermonitoringservice.state.api;
 import com.google.common.collect.Range;
 
 import rivermonitoringservice.data.RiverMonitoringServiceData;
+import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public interface State {
     
@@ -14,7 +15,9 @@ public interface State {
 
     String getStateAsString();
 
-    void evaluate(double waterLevel);
+    State evaluate(double waterLevel);
 
     Range<Double> getAssociatedRange();
+
+    void attachFSM(RiverMonitoringServiceFSM fsm);
 }

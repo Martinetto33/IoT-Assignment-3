@@ -3,12 +3,11 @@ package rivermonitoringservice.state.code;
 import com.google.common.collect.Range;
 
 import rivermonitoringservice.Constants;
-import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public class NormalState extends AbstractState {
 
-    public NormalState(RiverMonitoringServiceFSM fsm) {
-        super(fsm);
+    public NormalState() {
+        super();
     }
 
     @Override

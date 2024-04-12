@@ -15,10 +15,10 @@ public interface Constants {
     static int preTooHighOpeningLv = normalOpeningLv;
     static int tooHighOpeningLv = 50;
     static int tooHighCriticOpeningLv = 100;
-    static Range<Double> normalRange = Range.closed(waterLevel1, waterLevel2); // [WL1, WL2]
+    static Range<Double> normalRange = Range.closed(waterLevel2, waterLevel1); // [WL2, WL1]
     static Range<Double> lowRange = Range.greaterThan(waterLevel1); /* < W1; I know it may seem confusing, 
     but the constants specified here are the distances from the sensor, not the actual water level */
-    static Range<Double> preHighRange = Range.openClosed(waterLevel2, waterLevel3); // (WL2, WL3]
-    static Range<Double> highRange = Range.openClosed(waterLevel2, waterLevel3); // (WL3, WL4]
+    static Range<Double> preHighRange = Range.closedOpen(waterLevel3, waterLevel2); // (WL3, WL2]
+    static Range<Double> highRange = Range.closedOpen(waterLevel4, waterLevel3); // (WL4, WL3]
     static Range<Double> criticalRange = Range.lessThan(waterLevel4); // > WL4
 }

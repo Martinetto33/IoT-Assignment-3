@@ -17,11 +17,12 @@ public class RiverMonitoringServiceFSM {
             this.currentState.onExit();
         }
         this.currentState = newState;
+        this.currentState.attachFSM(this);
         this.currentState.onEntry();
     }
 
     public void handle(RiverMonitoringServiceData data) {
         this.currentState.handle(data);
-        this.currentState.evaluate(data.waterLevel());
+        this.changeState(this.currentState.evaluate(data.waterLevel()));
     }
 }

@@ -3,12 +3,11 @@ package rivermonitoringservice.state.code;
 import com.google.common.collect.Range;
 
 import rivermonitoringservice.Constants;
-import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public class AlarmTooHighState extends AbstractState {
 
-    public AlarmTooHighState(RiverMonitoringServiceFSM fsm) {
-        super(fsm);
+    public AlarmTooHighState() {
+        super();
     }
 
     @Override

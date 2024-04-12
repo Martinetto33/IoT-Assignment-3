@@ -12,19 +12,22 @@ import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
 public abstract class AbstractState implements State {
-    private final RiverMonitoringServiceFSM fsm;
+    private RiverMonitoringServiceFSM fsm;
     private int measurementFrequency;
     private double currentWaterLevel;
 
-    public AbstractState(final int measurementFrequency, final double currentWaterLevel, final RiverMonitoringServiceFSM fsm) {
+    public AbstractState(final int measurementFrequency, final double currentWaterLevel) {
         this.measurementFrequency = measurementFrequency;
         this.currentWaterLevel = currentWaterLevel;
-        Objects.requireNonNull(fsm);
-        this.fsm = fsm;
     }
 
-    public AbstractState(final RiverMonitoringServiceFSM fsm) {
-        this(Constants.f1, Constants.waterLevel1, fsm);
+    public AbstractState() {
+        this(Constants.f1, Constants.waterLevel1);
+    }
+
+    public void attachFSM(final RiverMonitoringServiceFSM fsm) {
+        Objects.requireNonNull(fsm);
+        this.fsm = fsm;
     }
 
     public void handle(RiverMonitoringServiceData data) {
@@ -78,25 +81,26 @@ public abstract class AbstractState implements State {
      * {@link rivermonitoringservice.fsm.RiverMonitoringServiceFSM}.
      * @param waterLevel the current water level.
      */
-    public void evaluate(final double waterLevel) {
+    public State evaluate(final double waterLevel) {
         /* If the current state is appropriate for this water level,
          * do nothing.
          */
         if (this.fsm.getCurrentState().getAssociatedRange().contains(waterLevel)) {
-            return;
+            return this;
         } else {
             if (Constants.lowRange.contains(waterLevel)) {
-                this.fsm.changeState(new AlarmTooLowState(this.fsm));
+                return new AlarmTooLowState();
             } else if (Constants.normalRange.contains(waterLevel)) {
-                this.fsm.changeState(new NormalState(this.fsm));
+                return new NormalState();
             } else if (Constants.preHighRange.contains(waterLevel)) {
-                this.fsm.changeState(new PreAlarmTooHighState(this.fsm));
+                return new PreAlarmTooHighState();
             } else if (Constants.highRange.contains(waterLevel)) {
-                this.fsm.changeState(new AlarmTooHighState(this.fsm));
+                return new AlarmTooHighState();
             } else if (Constants.criticalRange.contains(waterLevel)) {
-                this.fsm.changeState(new AlarmTooHighCriticState(this.fsm));
+                return new AlarmTooHighCriticState();
             } else {
                 System.out.println("Unearthly water level received: " + waterLevel);
+                return this;
             }
         }
     }

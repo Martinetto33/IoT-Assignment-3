@@ -1,4 +1,5 @@
 package rivermonitoringservice.webServer;
+
 /*
  *  the methods used to carry out communication between client and server through the use of post and get requests, 
  *  the first are used to update values in the server, while the second is used to obtain values from the server.
@@ -14,9 +15,10 @@ public interface RiverMonitoringDashboardApplicationInterface {
     String getStatus();
     //GET to obtain the opening percentage of gate from server
     int getOpening();
-    //TODO: add a method to allow the backend to at least suggest the correct valve opening level.
-    void setWaterLevel(double waterLevel);
-    void setSuggestedOpeningLevel(String suggestedLevel);
+    //setter to send the dashboard the suggested opening level of the valve, based on the system state; called by the backend
+    void setSuggestedValveOpeningLevel(String suggestedValveOpeningLevel);
+    //setter to send the dashboard the system status, called by the backend
     void setStatus(String status);
-    void startWebServer(String[] args);
+    //setter to send the dashboard the water level, called by the backend
+    void setWaterLevel(double waterLevel);
 }
