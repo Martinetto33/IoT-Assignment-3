@@ -1,11 +1,8 @@
 package rivermonitoringservice.state.code;
 
 import java.util.Objects;
-import java.util.Optional;
-
 import rivermonitoringservice.state.api.State;
 import rivermonitoringservice.Constants;
-import rivermonitoringservice.MessageID;
 import rivermonitoringservice.RiverMonitoringService;
 import rivermonitoringservice.WaterChannelControllerState;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
@@ -14,15 +11,13 @@ import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 public abstract class AbstractState implements State {
     private RiverMonitoringServiceFSM fsm;
     private int measurementFrequency;
-    private double currentWaterLevel;
 
-    public AbstractState(final int measurementFrequency, final double currentWaterLevel) {
+    public AbstractState(final int measurementFrequency) {
         this.measurementFrequency = measurementFrequency;
-        this.currentWaterLevel = currentWaterLevel;
     }
 
     public AbstractState() {
-        this(Constants.f1, Constants.waterLevel1);
+        this(Constants.f1);
     }
 
     public void attachFSM(final RiverMonitoringServiceFSM fsm) {
@@ -35,18 +30,13 @@ public abstract class AbstractState implements State {
             throw new IllegalStateException("The River Monitoring Service doesn't know if the Water Channel " +
                                              "Controller is in manual or automatic state.");
         }
-        /* Most states require to take measurements and handle occasional inputs from frontend. */
-        this.currentWaterLevel = data.waterLevel();
         /* If a remote user requested to open or close the valve... */
         if (data.openingPercentageRequiredByFrontend().isPresent()) {
             final int requiredPercentage = data.openingPercentageRequiredByFrontend().get();
             if (data.valveOpeningPercentage() != requiredPercentage && data.arduinoState() == WaterChannelControllerState.AUTO) {
                 // This operation is slow and cannot happen if the backend does not give the
                 // channel controller time to move the valve...
-                RiverMonitoringService.updateChannelController(MessageID.SET_OPENING_LEVEL, Optional.of(requiredPercentage));
-                // blocks until a message is received
-                RiverMonitoringService.waitForSerialCommunication();
-                RiverMonitoringService.handleWCCCommunications();
+                RiverMonitoringService.getWaterChannelController().requestControllerToSetValveOpeningLevel(requiredPercentage);
             }
         }
     }
@@ -66,10 +56,6 @@ public abstract class AbstractState implements State {
 
     public double getMeasurementFrequency() {
         return this.measurementFrequency;
-    }
-
-    public double getCurrentWaterLevel() {
-        return this.currentWaterLevel;
     }
 
     /* A "gentle" setter */

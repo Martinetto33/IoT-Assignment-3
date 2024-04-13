@@ -3,18 +3,14 @@
  */
 package rivermonitoringservice;
 
-import java.util.Optional;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import rivermonitoringservice.SharedMemory.SharedMemory;
+import rivermonitoringservice.channelcontroller.WaterChannelController;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
-import rivermonitoringservice.serial.ChannelControllerAnswerMessage;
-import rivermonitoringservice.serial.NoMessageArrivedException;
-import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.state.code.NormalState;
 import rivermonitoringservice.webServer.DashboardImpl;
 import rivermonitoringservice.webServer.Dashboard;
@@ -22,72 +18,37 @@ import rivermonitoringservice.webServer.Dashboard;
 @SpringBootApplication
 public class RiverMonitoringService {
     private static final Dashboard dashboard = new DashboardImpl();
-    private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
     private static final SharedMemory sharedMemory = new SharedMemory();
     private static final MqttManager mqttServer = new MqttManager(sharedMemory);
-    private static int valveOpeningLevel = 0; // the valve opening level percentage
-    private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
+    private static final WaterChannelController waterChannelController = new WaterChannelController(sharedMemory); 
 
     public String getGreeting() {
         return "Hello World!2";
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(RiverMonitoringService.class, args);
-        setup(args);
-        System.out.println(new RiverMonitoringService().getGreeting());        
-        // TODO: consider improving the dashboard logic; as of now it always sends a non-empty Optional.
-        /* Checking and updating the Water Channel Controller state: */
+        SpringApplication.run(RiverMonitoringService.class, args); // to start the dashboard
+        setup();
+        System.out.println(new RiverMonitoringService().getGreeting());
+        WaterChannelControllerState polledState;        
         while (true) {
-            serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
-            serialCommunicator.waitForSerialCommunication();
-            RiverMonitoringService.handleWCCCommunications();
-            if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
+            polledState = waterChannelController.getState();
+            if (polledState == WaterChannelControllerState.UNINITIALISED) {
                 System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
                 System.exit(3);
             }
-            /* Checking and updating the Water Channel Controller valve opening level. */
-            serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
-            serialCommunicator.waitForSerialCommunication();
-            RiverMonitoringService.handleWCCCommunications();
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(sharedMemory.getWaterLevel(),
-                                                                                valveOpeningLevel, 
-                                                                                dashboard.getUserRequestedOpeningLevel(), 
-                                                                                arduinoState);
+                                                                                   waterChannelController.askForValveOpeningLevelPercentage(), 
+                                                                                   dashboard.getUserRequestedOpeningLevel(), 
+                                                                                   polledState);
             RiverMonitoringService.updateDashboard();
-            fsm.handle(data);
+            fsm.handle(data, sharedMemory);
         }
     }
 
-    private static void setup(String[] args) {
+    private static void setup() {
         RiverMonitoringService.mqttServer.startMqttServer();
-        RiverMonitoringService.serialCommunicator.start();
-        /* Get the current state of the Water Channel Controller; it's supposedly AUTO at the beginning. */
-        RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
-        // await communication from arduino
-        try {
-            System.out.println("RECEIVED MESSAGE IN STATIC METHOD SETUP: " + RiverMonitoringService.serialCommunicator.waitForSerialCommunication());
-        } catch (NoMessageArrivedException e) {
-            System.out.println("No initial state of the Water Channel Controller was received in static method " +
-                                 "setup. Aborting.");
-            e.printStackTrace();
-            System.exit(1);
-        }
-        RiverMonitoringService.setWaterChannelControllerState(RiverMonitoringService.serialCommunicator.getReceivedData().getDataAsArduinoState());
-        /* Get the current valve opening level */
-        RiverMonitoringService.serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
-        // await communication from arduino
-        try {
-            System.out.println("RECEIVED MESSAGE IN STATIC METHOD SETUP: " + RiverMonitoringService.serialCommunicator.waitForSerialCommunication());
-        } catch (NoMessageArrivedException e) {
-            System.out.println("No initial opening level of the Water Channel Controller valve was received in static method " +
-                                 "setup. Aborting.");
-            e.printStackTrace();
-            System.exit(2);
-        }
-        RiverMonitoringService.valveOpeningLevel = RiverMonitoringService.serialCommunicator.getReceivedData().getDataAsValveOpeningLevel();
-
         RiverMonitoringService.fsm.changeState(new NormalState());
         System.out.println("SETUP COMPLETED!!");
     }
@@ -96,45 +57,19 @@ public class RiverMonitoringService {
         return RiverMonitoringService.sharedMemory;
     }
 
-    /**
-     * Static method used for serial communication with Water Channel Controller.
-     * @param messageID the ID of the message; different messages are handled in different ways,
-     * as specified in the {@link rivermonitoringservice.MessageID} class.
-     * @param data an Optional containing the requested valve opening level, if needed.
-     */
-    public static void updateChannelController(final MessageID messageID, final Optional<Integer> data) {
-        RiverMonitoringService.serialCommunicator.writeJsonToSerial(messageID, data);
-        valveOpeningLevel = data.isPresent() ? data.get() : valveOpeningLevel;
+    public static WaterChannelController getWaterChannelController() {
+        return waterChannelController;
     }
 
     public static void updateDashboard() {
         RiverMonitoringService.dashboard.refreshDashboardWithDataFromSharedMemory(RiverMonitoringService.sharedMemory);
     }
 
+    public static void notifyDashboard() {
+        RiverMonitoringService.dashboard.notifyThatRequestWasHandled();
+    }
+
     public static void updateESPMonitoringSystem(final int mFrequency) {
         mqttServer.communicateNewMeasurementFrequency(mFrequency);
-    }
-
-    public static WaterChannelControllerState getWaterChannelControllerState() {
-        return RiverMonitoringService.arduinoState;
-    }
-
-    public static void handleWCCCommunications() {
-        if (serialCommunicator.hasMessageArrived()) {
-            final ChannelControllerAnswerMessage msg = serialCommunicator.getReceivedData();
-            if (ChannelControllerAnswerMessage.MESSAGE_TYPE_CONTROLLER_STATUS.equals(msg.getMessageType())) {
-                setWaterChannelControllerState(msg.getDataAsArduinoState());
-            } else if (ChannelControllerAnswerMessage.MESSAGE_TYPE_VALVE_LEVEL.equals(msg.getMessageType())) {
-                RiverMonitoringService.valveOpeningLevel = msg.getDataAsValveOpeningLevel();
-            }
-        }
-    }
-
-    private static void setWaterChannelControllerState(final WaterChannelControllerState state) {
-        RiverMonitoringService.arduinoState = state;
-    }
-
-    public static String waitForSerialCommunication() {
-        return RiverMonitoringService.serialCommunicator.waitForSerialCommunication();
     }
 }
