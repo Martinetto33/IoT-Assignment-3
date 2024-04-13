@@ -37,10 +37,16 @@ public abstract class AbstractState implements State {
         }
         /* Most states require to take measurements and handle occasional inputs from frontend. */
         this.currentWaterLevel = data.waterLevel();
+        /* If a remote user requested to open or close the valve... */
         if (data.openingPercentageRequiredByFrontend().isPresent()) {
             final int requiredPercentage = data.openingPercentageRequiredByFrontend().get();
             if (data.valveOpeningPercentage() != requiredPercentage && data.arduinoState() == WaterChannelControllerState.AUTO) {
+                // This operation is slow and cannot happen if the backend does not give the
+                // channel controller time to move the valve...
                 RiverMonitoringService.updateChannelController(MessageID.SET_OPENING_LEVEL, Optional.of(requiredPercentage));
+                // blocks until a message is received
+                RiverMonitoringService.waitForSerialCommunication();
+                RiverMonitoringService.handleWCCCommunications();
             }
         }
         RiverMonitoringService.updateDashboard(this.currentWaterLevel, data.valveOpeningPercentage(), this.getStateAsString());

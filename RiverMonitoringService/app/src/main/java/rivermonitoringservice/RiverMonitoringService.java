@@ -41,6 +41,7 @@ public class RiverMonitoringService {
         /* Checking and updating the Water Channel Controller state: */
         while (true) {
             serialCommunicator.writeJsonToSerial(MessageID.GET_CONTROLLER_STATE, Optional.empty());
+            serialCommunicator.waitForSerialCommunication();
             RiverMonitoringService.handleWCCCommunications();
             if (arduinoState == WaterChannelControllerState.UNINITIALISED) {
                 System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
@@ -48,6 +49,8 @@ public class RiverMonitoringService {
             }
             /* Checking and updating the Water Channel Controller valve opening level. */
             serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
+            serialCommunicator.waitForSerialCommunication();
+            RiverMonitoringService.handleWCCCommunications();
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
                                                                                 valveOpeningLevel, 
                                                                                 Optional.of(dashboard.getOpening()), 
@@ -101,6 +104,7 @@ public class RiverMonitoringService {
      */
     public static void updateChannelController(final MessageID messageID, final Optional<Integer> data) {
         RiverMonitoringService.serialCommunicator.writeJsonToSerial(messageID, data);
+        valveOpeningLevel = data.isPresent() ? data.get() : valveOpeningLevel;
     }
 
     public static void updateDashboard(final double waterLevel, final int valveOpeningPercentage, final String currentState) {
@@ -127,13 +131,13 @@ public class RiverMonitoringService {
         return RiverMonitoringService.arduinoState;
     }
 
-    private static void handleWCCCommunications() {
+    public static void handleWCCCommunications() {
         if (serialCommunicator.hasMessageArrived()) {
             final ChannelControllerAnswerMessage msg = serialCommunicator.getReceivedData();
             if (ChannelControllerAnswerMessage.MESSAGE_TYPE_CONTROLLER_STATUS.equals(msg.getMessageType())) {
                 setWaterChannelControllerState(msg.getDataAsArduinoState());
             } else if (ChannelControllerAnswerMessage.MESSAGE_TYPE_VALVE_LEVEL.equals(msg.getMessageType())) {
-                valveOpeningLevel = msg.getDataAsValveOpeningLevel();
+                RiverMonitoringService.valveOpeningLevel = msg.getDataAsValveOpeningLevel();
             }
         }
     }
@@ -142,4 +146,7 @@ public class RiverMonitoringService {
         RiverMonitoringService.arduinoState = state;
     }
 
+    public static String waitForSerialCommunication() {
+        return RiverMonitoringService.serialCommunicator.waitForSerialCommunication();
+    }
 }

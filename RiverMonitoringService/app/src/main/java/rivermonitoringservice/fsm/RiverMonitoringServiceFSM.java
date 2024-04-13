@@ -23,6 +23,9 @@ public class RiverMonitoringServiceFSM {
 
     public void handle(RiverMonitoringServiceData data) {
         this.currentState.handle(data);
-        this.changeState(this.currentState.evaluate(data.waterLevel()));
+        final State nextState = this.currentState.evaluate(data.waterLevel());
+        if (nextState != this.currentState) {
+            this.changeState(nextState);
+        }
     }
 }

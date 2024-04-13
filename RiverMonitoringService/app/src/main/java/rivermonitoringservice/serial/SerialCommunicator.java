@@ -15,8 +15,11 @@ public class SerialCommunicator {
     private CommChannel commChannel;
     private ChannelControllerAnswerMessage receivedData; // the valve opening level percentage OR the state of the Water Channel Controller (auto or manual)
     private String jsonString;
+    private boolean messageAvailable;
 
-    public SerialCommunicator() {}
+    public SerialCommunicator() {
+        this.messageAvailable = false;
+    }
 
     public ChannelControllerAnswerMessage getReceivedData() {
         try {
@@ -30,6 +33,7 @@ public class SerialCommunicator {
             System.exit(5);
         } 
         System.out.println("Got the following message: " + this.receivedData);
+        this.messageAvailable = false;
         return this.receivedData;
     }
 
@@ -39,7 +43,7 @@ public class SerialCommunicator {
             return;
         }
         try {
-            this.commChannel = new SerialCommChannel(SerialPortList.getPortNames()[0], SerialPort.BAUDRATE_9600);
+            this.commChannel = new SerialCommChannel(SerialPortList.getPortNames()[0], SerialPort.BAUDRATE_115200);
         } catch (Exception e) {
             System.out.println("Error while creating professor's CommChannel.");
             e.printStackTrace();
@@ -70,9 +74,16 @@ public class SerialCommunicator {
         }
     }
 
+    /**
+     * Blocks on the Blocking Queue method take(). Throws an exception if the main thread
+     * is interrupted by the operating system.
+     * @return the received message as a String
+     * @throws NoMessageArrivedException when the blocking queue throws an InterruptedException.
+     */
     public String waitForSerialCommunication() throws NoMessageArrivedException {
         try {
             this.jsonString = this.commChannel.receiveMsg();
+            this.messageAvailable = true;
             return this.jsonString;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -81,6 +92,6 @@ public class SerialCommunicator {
     }
 
     public boolean hasMessageArrived() {
-        return this.commChannel.isMsgAvailable();
+        return this.messageAvailable;
     }
 }

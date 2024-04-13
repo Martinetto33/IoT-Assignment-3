@@ -10,7 +10,7 @@ RiverControllerTask::RiverControllerTask()
 void RiverControllerTask::tick(int period)
 {
     //Serial.println("Tick");
-    interpretMessage(this->sensorController.getAngle(), this->fsm.getMacroState(), this->sensorController);
+    interpretMessage((int) map(this->sensorController.getAngle(), 0, 179, 0, 100), this->fsm.getMacroState(), this->sensorController);
     if (this->fsm.getMacroState() == AUTO) {
         this->automaticRoutine(period);
     } else {
@@ -28,14 +28,14 @@ void RiverControllerTask::automaticRoutine(int period)
         {
             //frequenza usata per monitorare l'acqua è F1
             //la valvola deve essere aperta al 25%
-            this->sensorController.controllerSetGate(45);
+            //this->sensorController.controllerSetGate(45);
         }
         break;
         case ALARM_TOO_LOW:
         {
             //frequenza sempre F1 ??
             //la valvola deve essere aperta allo 0% (chiusa)
-            this->sensorController.controllerCloseGate();
+            //this->sensorController.controllerCloseGate();
         }
         break;
         case PRE_ALARM_TOO_HIGH:
@@ -48,14 +48,14 @@ void RiverControllerTask::automaticRoutine(int period)
         {
             //frequenza usata per monitorare l'acqua è sempre F2
             //la valvola deve essere aperta al 50%
-            this->sensorController.controllerSetGate(90);
+            //this->sensorController.controllerSetGate(90);
         }
         break;
         case ALARM_TOO_HIGH_CRITIC:
         {
             //frequenza usata per monitorare l'acqua è sempre F2
             //la valvola deve essere aperta al 100%
-            this->sensorController.controllerOpenGate();
+            //this->sensorController.controllerOpenGate();
         }
         break;
     }
