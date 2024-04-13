@@ -3,7 +3,7 @@ package rivermonitoringservice.SharedMemory;
 public class SharedMemory implements SharedMemoryInterface{
     private double waterLevel = 0;		        //indicates the height of the water
 	private int openingGatePercentage = 0;	//indicates the opening of the valve %
-	private String status = "a";			//indicates the status of the system
+	private String status = "a";			//indicates the status of the whole system
     private String suggestedValveOpeningLevel = "";
     
     public double getWaterLevel() {
