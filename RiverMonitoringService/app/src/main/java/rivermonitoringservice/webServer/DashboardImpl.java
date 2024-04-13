@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import rivermonitoringservice.RiverMonitoringService;
 import rivermonitoringservice.SharedMemory.SharedMemory;
 
 @RestController
@@ -27,10 +28,10 @@ public class DashboardImpl implements Dashboard {
      * When a new opening level is requested, the flag is set to true and the
      * requestedOpeningLevel variable will store the wanted opening level.
      */
-    private int requestedOpeningLevel = 0;
-    private boolean isValveChangeRequested = false;
+    private volatile int requestedOpeningLevel = 0;
+    private volatile boolean isValveChangeRequested = false;
 
-    public void refreshDashboardWithDataFromSharedMemory(final SharedMemory shMemory) {
+    public synchronized void refreshDashboardWithDataFromSharedMemory(final SharedMemory shMemory) {
         waterLevel = shMemory.getWaterLevel();
         openingGatePercentage = shMemory.getOpeningGatePercentage();
         status = shMemory.getStatus();
@@ -54,19 +55,19 @@ public class DashboardImpl implements Dashboard {
     // TODO: does this method need to return an integer?
     @CrossOrigin(origins = "*")
     @PostMapping("/dashboard")
-    public int requestOpeningLevelFromWebApp(@RequestParam(value = "level")int gateOpening) {
+    public synchronized int requestOpeningLevelFromWebApp(@RequestParam(value = "level")int gateOpening) {
         try {
             this.requestedOpeningLevel = gateOpening;
             this.isValveChangeRequested = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return DashboardImpl.openingGatePercentage;
+		return RiverMonitoringService.serviceSharedMemory().getOpeningGatePercentage();
     }
     
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
-    public double getLevel() {
+    public synchronized double getLevel() {
         return DashboardImpl.waterLevel;
     }
     

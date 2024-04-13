@@ -42,8 +42,8 @@ public class RiverMonitoringService {
                                                                                    waterChannelController.askForValveOpeningLevelPercentage(), 
                                                                                    dashboard.getUserRequestedOpeningLevel(), 
                                                                                    polledState);
-            RiverMonitoringService.updateDashboard();
             fsm.handle(data, sharedMemory);
+            RiverMonitoringService.updateDashboard();
         }
     }
 
