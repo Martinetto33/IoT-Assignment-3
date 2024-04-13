@@ -13,17 +13,17 @@ import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.embedded.EmbeddedHiveMQ;
 import com.hivemq.embedded.EmbeddedHiveMQBuilder;
 
-import rivermonitoringservice.Constants;
+import rivermonitoringservice.SharedMemory.SharedMemory;
 
 public class MqttManager {
 
     private static final String WATER_LEVEL_TOPIC_NAME = "esiot-2024/group-4/water-level";
     private static final String MEASUREMENT_FREQUENCY_TOPIC_NAME = "esiot-2024/group-4/measurement-frequency";
-    private double waterLevel = Constants.waterLevel1; // initialising to safe water level value
+    private final SharedMemory shMemory;
     private Mqtt5AsyncClient client;
 
-    public String getGreeting() {
-        return "Hello World!";
+    public MqttManager(final SharedMemory sharedMemory) {
+        this.shMemory = sharedMemory;
     }
 
     public void startMqttServer() {
@@ -67,7 +67,7 @@ public class MqttManager {
         this.client.publishes(MqttGlobalPublishFilter.ALL, publishedData -> {
             final String receivedMessage = new String(publishedData.getPayloadAsBytes(), StandardCharsets.UTF_8);
             //System.out.println("\nReceived message: " + receivedMessage);
-            this.waterLevel = Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", ""));
+            this.shMemory.setWaterLevel(Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", "")));
             //System.out.println("Successfully parsed the following double: " + this.waterLevel);
             //System.out.println("\n\nReceiving messages...");
         });
@@ -101,9 +101,5 @@ public class MqttManager {
         System.out.println("Successfully published measurement frequency: "
                             + mFrequency
                             + " to ESP (Water Monitoring System).");
-    }
-
-    public double getWaterLevel() {
-        return this.waterLevel;
     }
 }

@@ -49,7 +49,6 @@ public abstract class AbstractState implements State {
                 RiverMonitoringService.handleWCCCommunications();
             }
         }
-        RiverMonitoringService.updateDashboard(this.currentWaterLevel, data.valveOpeningPercentage(), this.getStateAsString());
     }
 
     /* SETTERS */

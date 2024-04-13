@@ -16,16 +16,16 @@ import rivermonitoringservice.serial.ChannelControllerAnswerMessage;
 import rivermonitoringservice.serial.NoMessageArrivedException;
 import rivermonitoringservice.serial.SerialCommunicator;
 import rivermonitoringservice.state.code.NormalState;
-import rivermonitoringservice.webServer.RiverMonitoringDashboardApplication;
-import rivermonitoringservice.webServer.RiverMonitoringDashboardApplicationInterface;
+import rivermonitoringservice.webServer.DashboardImpl;
+import rivermonitoringservice.webServer.Dashboard;
 
 @SpringBootApplication
 public class RiverMonitoringService {
-    private static final RiverMonitoringDashboardApplicationInterface dashboard = new RiverMonitoringDashboardApplication();
-    private static final MqttManager mqttServer = new MqttManager();
+    private static final Dashboard dashboard = new DashboardImpl();
     private static final SerialCommunicator serialCommunicator = new SerialCommunicator();
     private static final RiverMonitoringServiceFSM fsm = new RiverMonitoringServiceFSM();
     private static final SharedMemory sharedMemory = new SharedMemory();
+    private static final MqttManager mqttServer = new MqttManager(sharedMemory);
     private static int valveOpeningLevel = 0; // the valve opening level percentage
     private static WaterChannelControllerState arduinoState = WaterChannelControllerState.UNINITIALISED;
 
@@ -51,11 +51,11 @@ public class RiverMonitoringService {
             serialCommunicator.writeJsonToSerial(MessageID.GET_OPENING_LEVEL, Optional.empty());
             serialCommunicator.waitForSerialCommunication();
             RiverMonitoringService.handleWCCCommunications();
-            final RiverMonitoringServiceData data = new RiverMonitoringServiceData(mqttServer.getWaterLevel(),
+            final RiverMonitoringServiceData data = new RiverMonitoringServiceData(sharedMemory.getWaterLevel(),
                                                                                 valveOpeningLevel, 
-                                                                                Optional.of(dashboard.getOpening()), 
+                                                                                dashboard.getUserRequestedOpeningLevel(), 
                                                                                 arduinoState);
-            RiverMonitoringService.updateDashboard(data.waterLevel(), valveOpeningLevel, fsm.getCurrentState().getStateAsString());
+            RiverMonitoringService.updateDashboard();
             fsm.handle(data);
         }
     }
@@ -107,20 +107,8 @@ public class RiverMonitoringService {
         valveOpeningLevel = data.isPresent() ? data.get() : valveOpeningLevel;
     }
 
-    public static void updateDashboard(final double waterLevel, final int valveOpeningPercentage, final String currentState) {
-        /* 
-         * PROBLEM: the dashboard interface doesn't offer methods to set the valve opening percentage.
-         * My idea would be to add a field in the html page seen by the user with a suggested opening
-         * level percentage, so as to allow the backend to communicate the optimal valve opening
-         * levels based on the state of the system.
-         */
-        // TODO: use shared memory if we opt to do so
-        RiverMonitoringService.sharedMemory.setWaterLevel(waterLevel);
-        dashboard.setWaterLevel(waterLevel);
-        RiverMonitoringService.sharedMemory.setSuggestedValveOpeningLevel(String.valueOf(valveOpeningPercentage));
-        dashboard.setSuggestedValveOpeningLevel(String.valueOf(valveOpeningPercentage));
-        RiverMonitoringService.sharedMemory.setStatus(currentState);
-        dashboard.setStatus(currentState);
+    public static void updateDashboard() {
+        RiverMonitoringService.dashboard.refreshDashboardWithDataFromSharedMemory(RiverMonitoringService.sharedMemory);
     }
 
     public static void updateESPMonitoringSystem(final int mFrequency) {
