@@ -13,6 +13,7 @@ import rivermonitoringservice.channelcontroller.WaterChannelControllerState;
  * subsystems that compose the River Monitoring Service.
  */
 public record RiverMonitoringServiceData(double waterLevel,
-                                         int valveOpeningPercentage,
-                                         Optional<Integer> openingPercentageRequiredByFrontend,
-                                         WaterChannelControllerState arduinoState) {}
+        int valveOpeningPercentage,
+        Optional<Integer> openingPercentageRequiredByFrontend,
+        WaterChannelControllerState arduinoState) {
+}

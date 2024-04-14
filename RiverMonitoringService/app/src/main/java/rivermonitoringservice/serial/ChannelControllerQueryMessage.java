@@ -5,13 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import rivermonitoringservice.MessageID;
 
 /**
- * A class representing a message exchanged through serial port between the River Monitoring
- * Service and the Water Channel Controller. These messages represent queries launched by the
- * backend, which should be answered by the Water Channel Controller.
+ * A class representing a message exchanged through serial port between the
+ * River Monitoring Service and the Water Channel Controller. These messages
+ * represent queries launched by the backend, which should be answered by the
+ * Water Channel Controller.
  * 
  * This class should be easy to serialize into JSON objects.
  * 
- * The MessageID enum cand be extended if needed. See {@link rivermonitoringservice.serial.MessageID}
+ * The MessageID enum cand be extended if needed. See
+ * {@link rivermonitoringservice.serial.MessageID}
  * for further details.
  */
 public class ChannelControllerQueryMessage {
@@ -19,7 +21,7 @@ public class ChannelControllerQueryMessage {
     private final int data;
 
     public ChannelControllerQueryMessage(final MessageID message, final Optional<Integer> data) {
-        switch(message) {
+        switch (message) {
             case GET_OPENING_LEVEL:
                 this.messageID = 0;
                 break;
@@ -27,7 +29,7 @@ public class ChannelControllerQueryMessage {
                 this.messageID = 1;
                 break;
             case GET_CONTROLLER_STATE:
-                this.messageID = 2; 
+                this.messageID = 2;
                 break;
             default:
                 this.messageID = -1;

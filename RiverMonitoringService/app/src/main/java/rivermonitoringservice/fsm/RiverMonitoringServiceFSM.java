@@ -7,7 +7,8 @@ import rivermonitoringservice.state.api.State;
 public class RiverMonitoringServiceFSM {
     private State currentState;
 
-    public RiverMonitoringServiceFSM() {}
+    public RiverMonitoringServiceFSM() {
+    }
 
     public State getCurrentState() {
         return this.currentState;
@@ -23,10 +24,13 @@ public class RiverMonitoringServiceFSM {
     }
 
     /**
-     * This FSM manages the system based on the current state. It has access to the shared memory
+     * This FSM manages the system based on the current state. It has access to the
+     * shared memory
      * to update the system state as well.
-     * @param data the data polled by the monitoring service.
-     * @param shMemory the shared memory containing the current data derived from the sensors.
+     * 
+     * @param data     the data polled by the monitoring service.
+     * @param shMemory the shared memory containing the current data derived from
+     *                 the sensors.
      */
     public void handle(RiverMonitoringServiceData data, final SharedMemory shMemory) {
         this.currentState.handle(data);

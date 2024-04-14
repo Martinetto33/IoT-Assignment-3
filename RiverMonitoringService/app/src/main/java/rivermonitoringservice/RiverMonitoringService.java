@@ -24,14 +24,9 @@ public class RiverMonitoringService {
     private static final MqttManager mqttServer = new MqttManager(sharedMemory);
     private static final WaterChannelController waterChannelController = new WaterChannelController(sharedMemory); 
 
-    public String getGreeting() {
-        return "Hello World!2";
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(RiverMonitoringService.class, args); // to start the dashboard
         setup();
-        System.out.println(new RiverMonitoringService().getGreeting());
         WaterChannelControllerState polledState;        
         while (true) {
             polledState = waterChannelController.getState();
@@ -39,7 +34,6 @@ public class RiverMonitoringService {
                 System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
                 System.exit(3);
             }
-            System.out.println("Did user request a new opening level? " + dashboard.wasNewOpeningLevelRequested());
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(sharedMemory.getWaterLevel(),
                                                                                    waterChannelController.askForValveOpeningLevelPercentage(), 
                                                                                    dashboard.getUserRequestedOpeningLevel(), 
@@ -59,7 +53,7 @@ public class RiverMonitoringService {
         return RiverMonitoringService.sharedMemory;
     }
 
-    public static WaterChannelController getWaterChannelController() {
+    public static WaterChannelController serviceWaterChannelController() {
         return waterChannelController;
     }
 

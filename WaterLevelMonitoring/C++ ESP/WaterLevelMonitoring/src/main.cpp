@@ -100,10 +100,6 @@ void dataSenderTaskCode(void* parameter) {
   }
 }
 
-/* TODO: the frequency receiver task might be useless, since the mqtt client modifies
-the global variable. See Mqtt-Utilities.cpp for further details, in the "callback()" function.
-*/
-
 void sonarMeasTaskCode(void* parameters) {
   SonarMeasurementTask* task = new SonarMeasurementTask();
   float local_measurement_frequency;

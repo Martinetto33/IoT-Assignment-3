@@ -26,6 +26,7 @@
         <p>Opening gate percentage:</p>
         <input type="range" min="1" max="100" value="50" id="slider" class="send">
         <p>Slider value: <span id="sliderValue">50</span></p>
+        <p>Suggested opening level: <span id="suggestedLevel">N/D</span></p>
     </div>
     <div style="height: 400px;" id="chartContainer"> <!-- Set a fixed height for the chart's container -->
         <canvas id="myChart"></canvas>
@@ -119,6 +120,16 @@
             };
             xhr3.open("GET", "http://localhost:8080/getGatePercentage", true);
             xhr3.send();
+
+            /* Get the suggested opening level. */
+            var xhr4 = new XMLHttpRequest();
+            xhr4.onreadystatechange = function() {
+                if (xhr4.readyState == XMLHttpRequest.DONE) {
+                    suggestedLevel.innerHTML = xhr4.responseText;
+                }
+            };
+            xhr4.open("GET", "http://localhost:8080/getSuggestedOpeningLevel", true);
+            xhr4.send();
 
             setTimeout(poll, 100);
         }

@@ -12,18 +12,21 @@ import rivermonitoringservice.SharedMemory.SharedMemory;
 
 @RestController
 public class DashboardImpl implements Dashboard {
-    /* UPDATE: these fields need to be static for Spring to detect them. 
-     * NOTE: these fields represent the ACTUAL values contained in the shared memory,
+    /*
+     * UPDATE: these fields need to be static for Spring to detect them.
+     * NOTE: these fields represent the ACTUAL values contained in the shared
+     * memory,
      * meaning these are the date actually measured by the physical sensors.
      * The field 'requestedOpeningLevel' instead contains the gate opening level
      * wanted by the remote user interacting with the web application.
-    */
-	private static double waterLevel = 0.0;		        //indicates the height of the water
-	private static volatile int openingGatePercentage = 0;	//indicates the opening of the valve %
-	private static String status = "a";			//indicates the status of the system
+     */
+    private static double waterLevel = 0.0; // indicates the height of the water
+    private static volatile int openingGatePercentage = 0; // indicates the opening of the valve %
+    private static String status = "a"; // indicates the status of the system
     private static String suggestedValveOpeningLevel = "";
 
-    /* These fields are used to convey a remote user's commands to the backend.
+    /*
+     * These fields are used to convey a remote user's commands to the backend.
      * When a new opening level is requested, the flag is set to true and the
      * requestedOpeningLevel variable will store the wanted opening level.
      * 
@@ -54,8 +57,9 @@ public class DashboardImpl implements Dashboard {
     /**
      * Allows only one thread per class (so only one thread in general)
      * to read the value "isValveChangeRequested".
+     * 
      * @return true if a request to change the valve opening level arrived from
-     * the dashboard.
+     *         the dashboard.
      */
     private static synchronized boolean readUserRequestedData() {
         return DashboardImpl.isValveChangeRequested;
@@ -86,31 +90,30 @@ public class DashboardImpl implements Dashboard {
 
     /* SPRING METHODS */
 
-    // TODO: does this method need to return an integer?
     @CrossOrigin(origins = "*")
     @PostMapping("/dashboard")
-    public static synchronized int requestOpeningLevelFromWebApp(@RequestParam(value = "level")int gateOpening) {
+    public static synchronized int requestOpeningLevelFromWebApp(@RequestParam(value = "level") int gateOpening) {
         try {
             requestedOpeningLevel = gateOpening;
             isValveChangeRequested = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return requestedOpeningLevel; //RiverMonitoringService.serviceSharedMemory().getOpeningGatePercentage();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return requestedOpeningLevel;
     }
-    
+
     @CrossOrigin(origins = "*")
     @GetMapping("/getLevel")
     public double getLevel() {
         return DashboardImpl.waterLevel;
     }
-    
+
     @CrossOrigin(origins = "*")
     @GetMapping("/getStatus")
     public String getStatus() {
         return DashboardImpl.status;
     }
-    
+
     @CrossOrigin(origins = "*")
     @GetMapping("/getGatePercentage")
     public static synchronized int getOpening() {

@@ -38,40 +38,54 @@ public class MqttManager {
             ex.printStackTrace();
         }
 
-        /* Creation of the subscriber. Differently from the test version in the WaterLevelMonitoring folder,
-         * this client was built in an asynchronous way. If I understood correctly, the callback function provided
-         * as a Consumer<Mqtt5Publish> is automatically called each time an asynchronous communication event
+        /*
+         * Creation of the subscriber. Differently from the test version in the
+         * WaterLevelMonitoring folder,
+         * this client was built in an asynchronous way. If I understood correctly, the
+         * callback function provided
+         * as a Consumer<Mqtt5Publish> is automatically called each time an asynchronous
+         * communication event
          * occurs, so there's no need for infinite loops.
          * 
          * I used the following guide to implement this code:
-         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-for-java-and-its-async-api-flavor/
+         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-
+         * for-java-and-its-async-api-flavor/
          * 
          * For comparison, it might be useful to check the blocking alternative:
-         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-for-java-and-its-blocking-api-flavor/
+         * https://www.hivemq.com/blog/mqtt-client-api/the-hivemq-mqtt-client-library-
+         * for-java-and-its-blocking-api-flavor/
          * 
-         * Important note: it is good practice to add the callback function before connecting to the server, so
+         * Important note: it is good practice to add the callback function before
+         * connecting to the server, so
          * as not to lose information during the connection process.
          */
         this.client = Mqtt5Client.builder()
                 .identifier(UUID.randomUUID().toString())
                 .serverHost("broker.hivemq.com")
                 .buildAsync(); // the asynchronous version of the client
-        
+
         /*
          * The Mqtt5AsyncClient.publishes() method takes 2 parameters:
          * 1) the topic filter, allowing the system to discard irrelevant MQTT packets;
-         * 2) the callback function to process the received information with; it's a Consumer<Mqtt5Publish>.
+         * 2) the callback function to process the received information with; it's a
+         * Consumer<Mqtt5Publish>.
          * 
-         * The only relevant thing this callback does is set the water level to the read value.
+         * The only relevant thing this callback does is set the water level to the read
+         * value.
          */
         this.client.publishes(MqttGlobalPublishFilter.ALL, publishedData -> {
             final String receivedMessage = new String(publishedData.getPayloadAsBytes(), StandardCharsets.UTF_8);
-            //System.out.println("\nReceived message: " + receivedMessage);
-            this.shMemory.setWaterLevel(Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", "")));
-            //System.out.println("Successfully parsed the following double: " + this.waterLevel);
-            //System.out.println("\n\nReceiving messages...");
+
+            /*
+             * The value received from the ESP is expressed in meters. It is multiplied by
+             * 100 to convert it to cm.
+             */
+            this.shMemory.setWaterLevel(Double.parseDouble(receivedMessage.replaceAll("(\\r|\\n)", "")) * 100.0);
+            // System.out.println("Successfully parsed the following double: " +
+            // this.waterLevel);
+            // System.out.println("\n\nReceiving messages...");
         });
-        
+
         client.connect();
 
         /* Subscription of the client that runs on the backend. */
@@ -79,16 +93,18 @@ public class MqttManager {
         System.out.println("Subscription occurred");
 
         /* UNREACHABLE CODE; ideally, the server should always be up. */
-        /* client.disconnect();
-        hiveMQ.stop();
-        try {
-            // I must remember to call close, otherwise the program never ends.
-            hiveMQ.close();
-        } catch (ExecutionException | InterruptedException e) {
-            System.out.println("Error while trying to close broker");
-            e.printStackTrace();
-        }
-        System.out.println("MQTT broker stopped correctly."); */
+        /*
+         * client.disconnect();
+         * hiveMQ.stop();
+         * try {
+         * // I must remember to call close, otherwise the program never ends.
+         * hiveMQ.close();
+         * } catch (ExecutionException | InterruptedException e) {
+         * System.out.println("Error while trying to close broker");
+         * e.printStackTrace();
+         * }
+         * System.out.println("MQTT broker stopped correctly.");
+         */
     }
 
     public void communicateNewMeasurementFrequency(final int mFrequency) {
@@ -99,7 +115,7 @@ public class MqttManager {
                 .build();
         this.client.publish(publish);
         System.out.println("Successfully published measurement frequency: "
-                            + mFrequency
-                            + " to ESP (Water Monitoring System).");
+                + mFrequency
+                + " to ESP (Water Monitoring System).");
     }
 }

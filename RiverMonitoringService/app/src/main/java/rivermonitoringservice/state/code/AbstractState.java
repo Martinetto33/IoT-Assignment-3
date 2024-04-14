@@ -36,7 +36,7 @@ public abstract class AbstractState implements State {
             if (data.valveOpeningPercentage() != requiredPercentage && data.arduinoState() == WaterChannelControllerState.AUTO) {
                 // This operation is slow and cannot happen if the backend does not give the
                 // channel controller time to move the valve...
-                RiverMonitoringService.getWaterChannelController().requestControllerToSetValveOpeningLevel(requiredPercentage);
+                RiverMonitoringService.serviceWaterChannelController().requestControllerToSetValveOpeningLevel(requiredPercentage);
                 RiverMonitoringService.notifyDashboard();
             }
         }
@@ -61,17 +61,13 @@ public abstract class AbstractState implements State {
 
     /* A "gentle" setter */
     protected void suggestValveOpeningLevel(final int openingLevelPercentage) {
-        // TODO
+        RiverMonitoringService.serviceSharedMemory().setSuggestedValveOpeningLevel(String.valueOf(openingLevelPercentage));
     }
 
     public abstract String getStateAsString();
 
     /**
-     * This method should be called from outside this class, right after calling the handle() method.
-     * This is because the state might change after a call to this method.
-     * Currently, this method is called in the handle() method of the system finite state machine 
-     * {@link rivermonitoringservice.fsm.RiverMonitoringServiceFSM}.
-     * @param waterLevel the current water level.
+     * {@inheritDoc}
      */
     public State evaluate(final double waterLevel) {
         /* If the current state is appropriate for this water level,
