@@ -5,12 +5,15 @@
 
 const char* _prova = "{state: \"state\", data: 0}";
 // {"messageID":2, "data":-1}
+// {"messageID":1, "data":40}
+// {"messageID":1, "data":50}
+// {"messageID":0, "data":-1}
 
 void prova() {
     Serial.println(_prova);
 }
 
-void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoState, SensorsController controller) 
+void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoState, SensorsController &controller) 
 {
     //Serial.println("In interpretMessage()");
     if (Serial.available() > 0) {
@@ -67,7 +70,7 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
                        (a number ranging from 0 to 100) and needs to be mapped
                        to a valve opening angle, in the range [0, 180].
                     */
-                    controller.controllerSetGate((int) map(doc["data"], 0, 100, 0, 180));
+                    controller.controllerSetGate(doc["data"]);
                     sendValveMessage(doc["data"], controller);
                     break;
             case 2: // return the state of the Water Channel Controller
@@ -82,23 +85,30 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
     }
 }
 
-
-void sendStateMessage(int arduinoStateAsInt, SensorsController controller)
+void sendStateMessage(int arduinoStateAsInt, SensorsController &controller)
 {
     JsonDocument doc;
     doc["messageType"] = "state";
     doc["data"] = arduinoStateAsInt;
     serializeJson(doc, Serial);
-    Serial.println("");    
+    Serial.println(""); // to help the Java program find a '\n'
     //controller.controllerLCDPrint(doc.as<const char *>());
 }
 
-void sendValveMessage(int valveOpeningLevel, SensorsController controller)
+void sendValveMessage(int valveOpeningLevel, SensorsController &controller)
 {
     JsonDocument doc;
     doc["messageType"] = "valve";
     doc["data"] = valveOpeningLevel;
     serializeJson(doc, Serial);
-    Serial.println("");
+    Serial.println(""); // to help the Java program find a '\n'
     //controller.controllerLCDPrint(doc.as<const char *>());
+}
+
+int mapFromPercentageToAngle(int percentage) {
+    return (int) map(percentage, 0, 100, 0, 179);
+}
+
+int mapFromAngleToPercentage(int angle) {
+    return (int) map(angle, 0, 179, 0, 100);
 }

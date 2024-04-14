@@ -19,7 +19,7 @@ public class DashboardImpl implements Dashboard {
      * wanted by the remote user interacting with the web application.
     */
 	private static double waterLevel = 0.0;		        //indicates the height of the water
-	private static int openingGatePercentage = 0;	//indicates the opening of the valve %
+	private static volatile int openingGatePercentage = 0;	//indicates the opening of the valve %
 	private static String status = "a";			//indicates the status of the system
     private static String suggestedValveOpeningLevel = "";
 
@@ -112,7 +112,7 @@ public class DashboardImpl implements Dashboard {
     
     @CrossOrigin(origins = "*")
     @GetMapping("/getGatePercentage")
-    public synchronized int getOpening() {
+    public static synchronized int getOpening() {
         return DashboardImpl.openingGatePercentage;
     }
 
