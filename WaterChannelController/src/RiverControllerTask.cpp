@@ -3,12 +3,26 @@
 #include "RiverControllerFSM.hpp"
 #include "configConstants.hpp"
 
+extern volatile bool interruptOccurred; // defined in main.cpp
+
 RiverControllerTask::RiverControllerTask()
 {
 }
 
+void RiverControllerTask::checkStateChange()
+{
+    if (this->sensorController.controllerIsButtonPressed()) {
+        if (this->fsm.getMacroState() == AUTO) {
+            this->fsm.setMacroState(MANUAL);
+        } else {
+            this->fsm.setMacroState(AUTO);
+        }
+    }
+}
+
 void RiverControllerTask::tick(int period)
 {
+    this->checkStateChange();
     //Serial.println("Tick");
     interpretMessage(this->sensorController.getAngle(), this->fsm.getMacroState(), this->sensorController);
     if (this->fsm.getMacroState() == AUTO) {
@@ -66,3 +80,5 @@ void RiverControllerTask::manualRoutine(int period)
     //gestire l'apertura della valvola in base al potenziometro
     this->sensorController.controllerSetGate(this->sensorController.mappedPotentiometer());
 }
+
+

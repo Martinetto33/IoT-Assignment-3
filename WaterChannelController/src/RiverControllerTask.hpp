@@ -11,6 +11,7 @@ class RiverControllerTask : public Task {
         SensorsController sensorController;
         void automaticRoutine(int period);
         void manualRoutine(int period);
+        void checkStateChange();
     public:
         RiverControllerTask();
         void tick(int period) override;

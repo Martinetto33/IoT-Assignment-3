@@ -5,7 +5,7 @@
 /* Arduino PIN*/
 #define SERVO_PIN 4
 #define POTENTIOMETER_PIN A0
-#define BUTTON_PIN 7
+#define BUTTON_PIN 2
 #define LCD_SDA_PIN A2
 #define LCD_SCL_PIN A3
 

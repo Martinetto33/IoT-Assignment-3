@@ -35,6 +35,12 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
         //ReadLoggingStream loggingStream(Serial, Serial); // without this line, the Arduino doesn't receive jsons from java, even if synchronised. Why?
         JsonDocument doc;
         DeserializationError error = deserializeJson(doc, Serial);
+        /* Previous deserialisations might leave some spaces and/or terminating
+           characters on the serial, that would be intercepted by following reads.
+           This while prevents this from happening by consuming all space-like
+           characters. The peek() method allows to look at the content of
+           the serial port without consuming it.
+        */
         while (isspace(Serial.peek()))
             Serial.read();
         controller.controllerLCDPrint("flushed");
