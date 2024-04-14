@@ -13,8 +13,17 @@ void prova() {
     Serial.println(_prova);
 }
 
+int mapFromPercentageToAngle(int percentage) {
+    return (int) map(percentage, 0, 100, 0, 179);
+}
+
+int mapFromAngleToPercentage(int angle) {
+    return (int) map(angle, 0, 179, 0, 100);
+}
+
 void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoState, SensorsController &controller) 
 {
+    valveOpeningLevel = mapFromAngleToPercentage(valveOpeningLevel);
     //Serial.println("In interpretMessage()");
     if (Serial.available() > 0) {
         /* String readString = Serial.readString();
@@ -70,7 +79,7 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
                        (a number ranging from 0 to 100) and needs to be mapped
                        to a valve opening angle, in the range [0, 180].
                     */
-                    controller.controllerSetGate(doc["data"]);
+                    controller.controllerSetGate(mapFromPercentageToAngle(doc["data"]));
                     sendValveMessage(doc["data"], controller);
                     break;
             case 2: // return the state of the Water Channel Controller
@@ -103,12 +112,4 @@ void sendValveMessage(int valveOpeningLevel, SensorsController &controller)
     serializeJson(doc, Serial);
     Serial.println(""); // to help the Java program find a '\n'
     //controller.controllerLCDPrint(doc.as<const char *>());
-}
-
-int mapFromPercentageToAngle(int percentage) {
-    return (int) map(percentage, 0, 100, 0, 179);
-}
-
-int mapFromAngleToPercentage(int angle) {
-    return (int) map(angle, 0, 179, 0, 100);
 }

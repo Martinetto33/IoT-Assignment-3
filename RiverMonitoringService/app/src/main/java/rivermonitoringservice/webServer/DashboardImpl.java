@@ -54,13 +54,14 @@ public class DashboardImpl implements Dashboard {
     /**
      * Allows only one thread per class (so only one thread in general)
      * to read the value "isValveChangeRequested".
-     * @return
+     * @return true if a request to change the valve opening level arrived from
+     * the dashboard.
      */
     private static synchronized boolean readUserRequestedData() {
         return DashboardImpl.isValveChangeRequested;
     }
 
-    /* INTERFACE METHODS */
+    /* DASHBOARD INTERFACE METHODS */
 
     public void refreshDashboardWithDataFromSharedMemory(final SharedMemory shMemory) {
         waterLevel = shMemory.getWaterLevel();
