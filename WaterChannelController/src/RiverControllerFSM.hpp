@@ -3,50 +3,33 @@
 
 /*
     States of this FSM are distinguished in two macro states, "AUTO" and "MANUAL",
-    as seen in the first enum. The "AUTO" macro state is then logically divided
-    into more fine-grained states, called micro states, that model the specifics
-    of the project.
-
-    A RiverControllerFSM substantially contains two AbstractFSMs, one
-    for the macro states and one for the micro states.
+    as seen in the first enum. When the system is in "AUTO" mode, the valve is controlled
+    via dashboard from a web application. When the system is in "MANUAL" mode, the valve
+    is controlled physically through the potentiometer by a real operator.
 
     Objects of this class can be instantiated with the following code:
 
     RiverControllerFSM objectName;
 */
 
-enum riverControllerMacroStates {
+enum riverControllerStates {
     AUTO,
     MANUAL
 };
 
-enum riverControllerMicroStates {
-    NORMAL, /* the valve opening level should be 25% */
-    ALARM_TOO_LOW, /* the valve opening level should be 0% */
-    PRE_ALARM_TOO_HIGH, /* no changes */
-    ALARM_TOO_HIGH, /* the valve opening level should be 50% */
-    ALARM_TOO_HIGH_CRITIC /* the valve opening level should be 100% */
-};
-
 class RiverControllerFSM {
     private:
-        AbstractFSM<riverControllerMacroStates> macroFSM;
-        AbstractFSM<riverControllerMicroStates> microFSM;
+        AbstractFSM<riverControllerStates> fsm;
     public:
-        RiverControllerFSM() : macroFSM(AUTO), microFSM(NORMAL) {} /* This syntax is weird, but it's needed because there is no
+        RiverControllerFSM() : fsm(AUTO) {} /* This syntax is weird, but it's needed because there is no
                                                                     no default constructor for the AbstractFSM.
                                                                     
                                                                     More about that at: 
                                                                     https://stackoverflow.com/questions/4981241/no-default-constructor-exists-for-class
                                                                     */
-        void setMacroState(riverControllerMacroStates macro_state);
-        void setMicroState(riverControllerMicroStates micro_state);
+        void setState(riverControllerStates macro_state);
 
         /* Call this when you want to know if the system is in
         AUTO or MANUAL state. */
-        riverControllerMacroStates getMacroState();
-
-        /* Call this when you want to know in which specific micro state
-        of the "AUTO" macro state the FSM is.*/
-        riverControllerMicroStates getMicroState();
+        riverControllerStates getState();
 };

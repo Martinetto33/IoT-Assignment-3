@@ -13,10 +13,10 @@ RiverControllerTask::RiverControllerTask()
 void RiverControllerTask::checkIfStateMustChange()
 {
     if (this->sensorController.controllerIsButtonPressed()) {
-        if (this->fsm.getMacroState() == AUTO) {
-            this->fsm.setMacroState(MANUAL);
+        if (this->fsm.getState() == AUTO) {
+            this->fsm.setState(MANUAL);
         } else {
-            this->fsm.setMacroState(AUTO);
+            this->fsm.setState(AUTO);
         }
     }
 }
@@ -24,8 +24,8 @@ void RiverControllerTask::checkIfStateMustChange()
 void RiverControllerTask::tick(int period)
 {
     this->checkIfStateMustChange();
-    interpretMessage(this->sensorController.getAngle(), this->fsm.getMacroState(), this->sensorController); // defined in SerialCommunicator.cpp
-    if (this->fsm.getMacroState() == AUTO) {
+    interpretMessage(this->sensorController.getAngle(), this->fsm.getState(), this->sensorController); // defined in SerialCommunicator.cpp
+    if (this->fsm.getState() == AUTO) {
         this->automaticRoutine(period);
     } else {
         this->manualRoutine(period);

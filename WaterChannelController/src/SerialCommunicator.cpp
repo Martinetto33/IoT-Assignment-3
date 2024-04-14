@@ -14,7 +14,7 @@ void prova() {
     Serial.println(_prova);
 }
 
-void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoState, SensorsController &controller) 
+void interpretMessage(int valveOpeningLevel, riverControllerStates arduinoState, SensorsController &controller) 
 {
     valveOpeningLevel = mapFromAngleToPercentage(valveOpeningLevel);
     if (Serial.available() > 0) {
