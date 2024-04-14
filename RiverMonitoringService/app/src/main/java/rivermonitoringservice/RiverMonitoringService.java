@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import rivermonitoringservice.SharedMemory.SharedMemory;
 import rivermonitoringservice.channelcontroller.WaterChannelController;
+import rivermonitoringservice.channelcontroller.WaterChannelControllerState;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 import rivermonitoringservice.mqtt.MqttManager;
@@ -38,6 +39,7 @@ public class RiverMonitoringService {
                 System.out.println("Something wrong occurred while receiving the state of the Water Channel Controller.");
                 System.exit(3);
             }
+            System.out.println("Did user request a new opening level? " + dashboard.wasNewOpeningLevelRequested());
             final RiverMonitoringServiceData data = new RiverMonitoringServiceData(sharedMemory.getWaterLevel(),
                                                                                    waterChannelController.askForValveOpeningLevelPercentage(), 
                                                                                    dashboard.getUserRequestedOpeningLevel(), 

@@ -3,7 +3,7 @@ package rivermonitoringservice.serial;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import rivermonitoringservice.WaterChannelControllerState;
+import rivermonitoringservice.channelcontroller.WaterChannelControllerState;
 
 /**
  * A class representing a message exchanged through serial port between the River Monitoring

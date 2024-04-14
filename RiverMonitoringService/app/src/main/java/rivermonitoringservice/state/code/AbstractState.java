@@ -4,7 +4,7 @@ import java.util.Objects;
 import rivermonitoringservice.state.api.State;
 import rivermonitoringservice.Constants;
 import rivermonitoringservice.RiverMonitoringService;
-import rivermonitoringservice.WaterChannelControllerState;
+import rivermonitoringservice.channelcontroller.WaterChannelControllerState;
 import rivermonitoringservice.data.RiverMonitoringServiceData;
 import rivermonitoringservice.fsm.RiverMonitoringServiceFSM;
 
@@ -37,6 +37,7 @@ public abstract class AbstractState implements State {
                 // This operation is slow and cannot happen if the backend does not give the
                 // channel controller time to move the valve...
                 RiverMonitoringService.getWaterChannelController().requestControllerToSetValveOpeningLevel(requiredPercentage);
+                RiverMonitoringService.notifyDashboard();
             }
         }
     }

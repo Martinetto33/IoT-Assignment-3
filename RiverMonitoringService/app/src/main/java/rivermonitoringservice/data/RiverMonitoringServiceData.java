@@ -2,7 +2,7 @@ package rivermonitoringservice.data;
 
 import java.util.Optional;
 
-import rivermonitoringservice.WaterChannelControllerState;
+import rivermonitoringservice.channelcontroller.WaterChannelControllerState;
 
 /**
  * Record classes are immutable and provide public getters for their fields.

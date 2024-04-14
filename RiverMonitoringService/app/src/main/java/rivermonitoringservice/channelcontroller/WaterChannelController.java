@@ -5,7 +5,6 @@ import java.util.Optional;
 import com.google.common.collect.Range;
 
 import rivermonitoringservice.MessageID;
-import rivermonitoringservice.WaterChannelControllerState;
 import rivermonitoringservice.SharedMemory.SharedMemory;
 import rivermonitoringservice.serial.ChannelControllerAnswerMessage;
 import rivermonitoringservice.serial.SerialCommunicator;
@@ -35,7 +34,7 @@ public class WaterChannelController {
     /**
      * Getter of the state of the physical Water Channel Controller (automatic
      * or manual).
-     * @return a {@link rivermonitoringservice.WaterChannelControllerState} describing
+     * @return a {@link rivermonitoringservice.channelcontroller.WaterChannelControllerState} describing
      * the state of the physical Water Channel Controller.
      */
     public WaterChannelControllerState getState() {
