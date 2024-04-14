@@ -2,14 +2,13 @@
 
 #include <Arduino.h>
 
-#define BUTTON_BOUNCING_TIME_MS 30
-
 class Button {
     private:
         uint8_t buttonPin;
-        int buttonState;                // needed for debouncing
-        int lastButtonState;            // needed for debouncing
-        unsigned long lastDebounceTime; // needed for debouncing
+        int buttonState; // current reading of the input pin
+        int lastButtonState; // previous reading of the input pin
+        unsigned long lastDebounceTime; // the last time the output pin was toggled
+        const unsigned long bouncingTime = 30; // expressed in milliseconds
     public:
         Button(uint8_t bPin);
         bool isPressed();

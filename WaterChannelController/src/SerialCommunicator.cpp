@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
 #include "SerialCommunication.hpp"
+#include "Utils.hpp"
 
 const char* _prova = "{state: \"state\", data: 0}";
 // {"messageID":2, "data":-1}
@@ -13,28 +14,12 @@ void prova() {
     Serial.println(_prova);
 }
 
-int mapFromPercentageToAngle(int percentage) {
-    return (int) map(percentage, 0, 100, 0, 179);
-}
-
-int mapFromAngleToPercentage(int angle) {
-    return (int) map(angle, 0, 179, 0, 100);
-}
-
 void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoState, SensorsController &controller) 
 {
     valveOpeningLevel = mapFromAngleToPercentage(valveOpeningLevel);
-    //Serial.println("In interpretMessage()");
     if (Serial.available() > 0) {
-        /* String readString = Serial.readString();
-        readString.trim(); */
-        //int readInt = Serial.parseInt();
-        controller.controllerLCDClear();
-        controller.controllerLCDPrint("oddio seriale");
-        //delay(1000);
-        //ReadLoggingStream loggingStream(Serial, Serial); // without this line, the Arduino doesn't receive jsons from java, even if synchronised. Why?
         JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, Serial);
+        deserializeJson(doc, Serial);
         /* Previous deserialisations might leave some spaces and/or terminating
            characters on the serial, that would be intercepted by following reads.
            This while prevents this from happening by consuming all space-like
@@ -43,11 +28,9 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
         */
         while (isspace(Serial.peek()))
             Serial.read();
-        controller.controllerLCDPrint("flushed");
-        //delay(1000);
-        if (error != DeserializationError::Ok) {
+        // DEBUG ONLY
+        /* if (error != DeserializationError::Ok) {
             controller.controllerLCDPrint(":(");
-            //delay(3000);
             switch(error.code()) {
                 case DeserializationError::Ok:
                     controller.controllerLCDPrint("bro sto trollando");
@@ -71,32 +54,32 @@ void interpretMessage(int valveOpeningLevel, riverControllerMacroStates arduinoS
                     controller.controllerLCDPrint("banane");
                     break;
             }
-            //delay(10000);
-        }
+        } */
         int messageID = doc["messageID"];
         switch (messageID) {
             case 0: // get opening level
-                    controller.controllerLCDPrint("case 0");
                     sendValveMessage(valveOpeningLevel, controller);
                     break;
             case 1: // set opening level
-                    controller.controllerLCDPrint("case 1");
                     /* The value received from the backend is a percentage
                        (a number ranging from 0 to 100) and needs to be mapped
                        to a valve opening angle, in the range [0, 180].
                     */
                     controller.controllerSetGate(mapFromPercentageToAngle(doc["data"]));
+                    /* Update the value shown on the LCD */
+                    char buffer[sizeof(int)];
+                    sprintf(buffer, "%d", mapFromAngleToPercentage(controller.getAngle()));
+                    controller.controllerLCDPrint(buffer);
+                    /* Send acknowledge message on serial */
                     sendValveMessage(doc["data"], controller);
                     break;
             case 2: // return the state of the Water Channel Controller
-                    controller.controllerLCDPrint("case 2");
-                    //prova();
                     sendStateMessage(arduinoState, controller);
                     break;
             default: 
-                    controller.controllerLCDPrint("AHSHH");
+                    controller.controllerLCDPrint("ERROR");
                     break;
-        }
+        }    
     }
 }
 

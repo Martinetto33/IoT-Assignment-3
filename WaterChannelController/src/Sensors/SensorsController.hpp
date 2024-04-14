@@ -1,8 +1,6 @@
 #pragma once
-#include "SonarSensor.hpp"
 #include "ServoMotor.hpp"
 #include "LcdScreen.hpp"
-#include "Led.hpp"
 #include "Button.hpp"
 #include "Potentiometer.hpp"
 #include "configPin.hpp"
@@ -19,17 +17,12 @@
 class SensorsController
 {
     private:
-        SonarSensor sonar;
         ServoMotor servo;
         Potentiometer potentiometer;
         LcdScreen lcd;
-        Led L1;
-        Led L2;
         Button btn;
     public:
         SensorsController();
-        Led* determineLEDFromIndex(int index);
-        
         /* LCD management */
         void controllerLCDPrint(const char* message);
         void controllerLCDClear();
@@ -43,13 +36,6 @@ class SensorsController
         int controllerCloseGate();
         int controllerSetGate(int angle);
         int getAngle();
-
-        /* Sonar management */
-        float controllerMeasureDistance();
-
-        /* LED management */
-        void controllerTurnOnLED(int ledNumber);
-        void controllerTurnOffLED(int ledNumber);
 
         /* Button management */
         bool controllerIsButtonPressed();
