@@ -39,7 +39,6 @@ SemaphoreHandle_t mFrequencySemaphore;
 
 TaskHandle_t connectionMonitoringTask;
 TaskHandle_t dataSenderTask;
-TaskHandle_t frequencyReceiverTask; // see below
 TaskHandle_t sonarMeasurementTask;
 
 NetworkStatusFSM fsm;
